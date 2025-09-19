@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Host Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .demo-section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        .demo-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 8px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .demo-button:hover {
+            background-color: #2980b9;
+        }
+        .demo-button.success {
+            background-color: #27ae60;
+        }
+        .demo-button.success:hover {
+            background-color: #229954;
+        }
+        .demo-button.warning {
+            background-color: #f39c12;
+        }
+        .demo-button.warning:hover {
+            background-color: #e67e22;
+        }
+        .demo-button.danger {
+            background-color: #e74c3c;
+        }
+        .demo-button.danger:hover {
+            background-color: #c0392b;
+        }
+        .code-block {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PWA Host Demo</h1>
+        
+        <div class="status info">
+            <strong>Welcome!</strong> This page demonstrates the PWA Host object functionality. 
+            The <code>pwa</code> object is automatically injected into this page and provides methods to interact with the PWA host application.
+        </div>
+
+        <!-- PWA Object Status -->
+        <div class="demo-section">
+            <h3>📊 PWA Object Status</h3>
+            <div id="pwa-status">Checking PWA object availability...</div>
+            <button class="demo-button" onclick="checkPwaStatus()">Check Status</button>
+        </div>
+
+        <!-- Home Page Management -->
+        <div class="demo-section">
+            <h3>🏠 Home Page Management</h3>
+            <div class="input-group">
+                <label for="homepage-url">Set Home Page URL:</label>
+                <input type="text" id="homepage-url" placeholder="https://www.google.com" value="https://www.google.com">
+            </div>
+            <button class="demo-button success" onclick="setHomePage()">Set Home Page</button>
+            <button class="demo-button" onclick="getHomePage()">Get Current Home Page</button>
+            <div id="homepage-result"></div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="demo-section">
+            <h3>🧭 Navigation Controls</h3>
+            <div class="input-group">
+                <label for="navigate-url">Navigate to URL:</label>
+                <input type="text" id="navigate-url" placeholder="https://www.github.com" value="https://www.github.com">
+            </div>
+            <button class="demo-button" onclick="navigateToUrl()">Navigate</button>
+            <button class="demo-button" onclick="reloadPage()">Reload</button>
+            <button class="demo-button" onclick="goBack()">Go Back</button>
+            <button class="demo-button" onclick="getCurrentInfo()">Get Current Info</button>
+        </div>
+
+        <!-- Window Controls -->
+        <div class="demo-section">
+            <h3>🪟 Window Controls</h3>
+            <button class="demo-button" onclick="bringToFront()">Bring to Front</button>
+            <button class="demo-button" onclick="setWindowSize()">Set Size (800x600)</button>
+            <button class="demo-button" onclick="getVersion()">Get Version</button>
+        </div>
+
+        <!-- JavaScript Execution -->
+        <div class="demo-section">
+            <h3>⚡ JavaScript Execution</h3>
+            <div class="input-group">
+                <label for="js-code">Execute JavaScript:</label>
+                <input type="text" id="js-code" placeholder="alert('Hello from PWA!')" value="alert('Hello from PWA Host!')">
+            </div>
+            <button class="demo-button warning" onclick="executeScript()">Execute Script</button>
+        </div>
+
+        <!-- API Reference -->
+        <div class="demo-section">
+            <h3>📚 API Reference</h3>
+            <p>Available methods on the <code>pwa</code> object:</p>
+            <div class="code-block">
+// Home page management
+pwa.setHomePage("https://www.google.com");
+pwa.getHomePage();
+
+// Navigation
+pwa.navigate("https://www.github.com");
+pwa.reload();
+pwa.goBack();
+pwa.getCurrentUrl();
+pwa.getTitle();
+
+// Window controls
+pwa.bringToFront();
+pwa.setSize(800, 600);
+pwa.getVersion();
+
+// JavaScript execution
+pwa.executeScript("alert('Hello!')");
+
+// Logging
+pwa.log("Custom message");
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if PWA object is available
+        function checkPwaStatus() {
+            const statusDiv = document.getElementById('pwa-status');
+            
+            if (typeof window.pwa !== 'undefined' && window.pwa) {
+                statusDiv.innerHTML = '<div class="status success">✅ PWA object is available and ready to use!</div>';
+                try {
+                    const version = window.pwa.getVersion();
+                    statusDiv.innerHTML += `<div class="status info">PWA Host Version: ${version}</div>`;
+                } catch (e) {
+                    statusDiv.innerHTML += '<div class="status warning">Could not get version info</div>';
+                }
+            } else {
+                statusDiv.innerHTML = '<div class="status warning">❌ PWA object is not available. Make sure you\'re running this in the PWA Host application.</div>';
+            }
+        }
+
+        // Home page management
+        function setHomePage() {
+            const url = document.getElementById('homepage-url').value;
+            if (url && window.pwa) {
+                try {
+                    window.pwa.setHomePage(url);
+                    document.getElementById('homepage-result').innerHTML = 
+                        `<div class="status success">✅ Home page set to: ${url}</div>`;
+                } catch (e) {
+                    document.getElementById('homepage-result').innerHTML = 
+                        `<div class="status warning">❌ Error: ${e.message}</div>`;
+                }
+            }
+        }
+
+        function getHomePage() {
+            if (window.pwa) {
+                try {
+                    const currentHomePage = window.pwa.getHomePage();
+                    document.getElementById('homepage-result').innerHTML = 
+                        `<div class="status info">Current home page: ${currentHomePage}</div>`;
+                } catch (e) {
+                    document.getElementById('homepage-result').innerHTML = 
+                        `<div class="status warning">❌ Error: ${e.message}</div>`;
+                }
+            }
+        }
+
+        // Navigation
+        function navigateToUrl() {
+            const url = document.getElementById('navigate-url').value;
+            if (url && window.pwa) {
+                window.pwa.navigate(url);
+            }
+        }
+
+        function reloadPage() {
+            if (window.pwa) {
+                window.pwa.reload();
+            }
+        }
+
+        function goBack() {
+            if (window.pwa) {
+                window.pwa.goBack();
+            }
+        }
+
+        function getCurrentInfo() {
+            if (window.pwa) {
+                try {
+                    const url = window.pwa.getCurrentUrl();
+                    const title = window.pwa.getTitle();
+                    alert(`Current URL: ${url}\nCurrent Title: ${title}`);
+                } catch (e) {
+                    alert(`Error: ${e.message}`);
+                }
+            }
+        }
+
+        // Window controls
+        function bringToFront() {
+            if (window.pwa) {
+                window.pwa.bringToFront();
+            }
+        }
+
+        function setWindowSize() {
+            if (window.pwa) {
+                window.pwa.setSize(800, 600);
+            }
+        }
+
+        function getVersion() {
+            if (window.pwa) {
+                try {
+                    const version = window.pwa.getVersion();
+                    alert(`PWA Host Version: ${version}`);
+                } catch (e) {
+                    alert(`Error: ${e.message}`);
+                }
+            }
+        }
+
+        // JavaScript execution
+        function executeScript() {
+            const code = document.getElementById('js-code').value;
+            if (code && window.pwa) {
+                window.pwa.executeScript(code);
+            }
+        }
+
+        // Check PWA status when page loads
+        window.addEventListener('load', function() {
+            // Wait a bit for the PWA object to be injected
+            setTimeout(checkPwaStatus, 1000);
+        });
+
+        // Log when PWA object becomes available
+        let pwaCheckInterval = setInterval(function() {
+            if (typeof window.pwa !== 'undefined' && window.pwa) {
+                console.log('PWA Host object detected!');
+                window.pwa.log('PWA Demo page loaded successfully');
+                clearInterval(pwaCheckInterval);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

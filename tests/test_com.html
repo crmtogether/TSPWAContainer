@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRMTogether.PwaHost COM Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 14px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>CRMTogether.PwaHost COM Test</h1>
+    <p>This test requires Internet Explorer with ActiveX enabled.</p>
+    
+    <button onclick="testCreateObject()">Test Create Object</button>
+    <button onclick="testNavigate()">Test Navigate</button>
+    <button onclick="testBringToFront()">Test Bring To Front</button>
+    <button onclick="testGetUrl()">Test Get Current URL</button>
+    
+    <div id="results"></div>
+
+    <script>
+        var ctrl = null;
+        
+        function log(message, isError = false) {
+            var div = document.createElement('div');
+            div.className = 'result ' + (isError ? 'error' : 'success');
+            div.innerHTML = new Date().toLocaleTimeString() + ': ' + message;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        function testCreateObject() {
+            try {
+                ctrl = new ActiveXObject("CRMTogether.PwaHost");
+                log("✓ COM object created successfully!");
+            } catch (e) {
+                log("✗ COM object creation failed: " + e.message, true);
+            }
+        }
+        
+        function testNavigate() {
+            if (!ctrl) {
+                log("✗ Please create COM object first", true);
+                return;
+            }
+            try {
+                ctrl.Navigate("https://www.google.com");
+                log("✓ Navigation command sent");
+            } catch (e) {
+                log("✗ Navigation failed: " + e.message, true);
+            }
+        }
+        
+        function testBringToFront() {
+            if (!ctrl) {
+                log("✗ Please create COM object first", true);
+                return;
+            }
+            try {
+                ctrl.BringToFront();
+                log("✓ BringToFront command sent");
+            } catch (e) {
+                log("✗ BringToFront failed: " + e.message, true);
+            }
+        }
+        
+        function testGetUrl() {
+            if (!ctrl) {
+                log("✗ Please create COM object first", true);
+                return;
+            }
+            try {
+                var url = ctrl.GetCurrentUrl();
+                log("✓ Current URL: " + url);
+            } catch (e) {
+                log("✗ GetCurrentUrl failed: " + e.message, true);
+            }
+        }
+    </script>
+</body>
+</html>

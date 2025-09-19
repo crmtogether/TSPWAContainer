@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRMTogether PWA Host - URI Protocol Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 8px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .test-button:hover {
+            background-color: #2980b9;
+        }
+        .test-button.danger {
+            background-color: #e74c3c;
+        }
+        .test-button.danger:hover {
+            background-color: #c0392b;
+        }
+        .test-button.success {
+            background-color: #27ae60;
+        }
+        .test-button.success:hover {
+            background-color: #229954;
+        }
+        .uri-display {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .description {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CRMTogether PWA Host - URI Protocol Test</h1>
+        
+        <div class="status info">
+            <strong>Instructions:</strong> Click the buttons below to test different URI protocol commands. 
+            Make sure CRMTogether.PwaHost.exe is running first!
+        </div>
+
+        <div class="status warning">
+            <strong>Note:</strong> JavaScript code in URIs must be URL-encoded. Special characters like quotes, spaces, and parentheses are encoded as %27, %20, %28, %29, etc.
+        </div>
+
+        <!-- Basic Navigation Tests -->
+        <div class="test-section">
+            <h3>🌐 Basic Navigation Tests</h3>
+            <div class="description">
+                Test basic URL navigation functionality
+            </div>
+
+            <a href="crmtog://navigate?url=https://appacpro.crmtogether.com" class="test-button">
+                AC Pro  
+            </a>            
+            
+            <a href="crmtog://navigate?url=https://appmxpro.crmtogether.com" class="test-button">
+                MX Pro  
+            </a>
+            
+            <a href="crmtog://navigate?url=https://appmxs100.crmtogether.com" class="test-button">
+                MX S100
+            </a>
+            
+            <a href="crmtog://navigate?url=https://appmxcreatio.crmtogether.com" class="test-button">
+                MX Creatio
+            </a>
+            
+            <div class="uri-display">crmtog://navigate?url=https://www.google.com</div>
+        </div>        
+
+        <!-- Basic Navigation Tests -->
+        <div class="test-section">
+            <h3>🌐 Basic Navigation Tests</h3>
+            <div class="description">
+                Test basic URL navigation functionality
+            </div>
+            
+            <a href="crmtog://navigate?url=https://www.google.com" class="test-button">
+                Navigate to Google
+            </a>
+            
+            <a href="crmtog://navigate?url=https://www.github.com" class="test-button">
+                Navigate to GitHub
+            </a>
+            
+            <a href="crmtog://navigate?url=https://www.stackoverflow.com" class="test-button">
+                Navigate to Stack Overflow
+            </a>
+            
+            <div class="uri-display">crmtog://navigate?url=https://www.google.com</div>
+        </div>
+
+        <!-- JavaScript Execution Tests -->
+        <div class="test-section">
+            <h3>⚡ JavaScript Execution Tests</h3>
+            <div class="description">
+                Test JavaScript execution in the WebView2 control
+            </div>
+            
+            <a href="crmtog://exec?js=alert(%27Hello%20from%20URI!%27)" class="test-button">
+                Show Alert
+            </a>
+            
+            <a href="crmtog://exec?js=document.body.style.backgroundColor%3D%27lightblue%27" class="test-button">
+                Change Background
+            </a>
+            
+            <a href="crmtog://exec?js=console.log(%27URI%20executed:%27%2C%20new%20Date())" class="test-button">
+                Log to Console
+            </a>
+            
+            <div class="uri-display">crmtog://exec?js=alert(%27Hello%20from%20URI!%27)</div>
+        </div>
+
+        <!-- JavaScript with Results -->
+        <div class="test-section">
+            <h3>📊 JavaScript with Results</h3>
+            <div class="description">
+                Test JavaScript execution that returns values
+            </div>
+            
+            <a href="crmtog://execres?js=document.title" class="test-button">
+                Get Page Title
+            </a>
+            
+            <a href="crmtog://execres?js=window.location.href" class="test-button">
+                Get Current URL
+            </a>
+            
+            <a href="crmtog://execres?js=document.querySelectorAll(%27*%27).length" class="test-button">
+                Count DOM Elements
+            </a>
+            
+            <div class="uri-display">crmtog://execres?js=document.title</div>
+        </div>
+
+        <!-- Function Call Tests -->
+        <div class="test-section">
+            <h3>🔧 Function Call Tests</h3>
+            <div class="description">
+                Test calling JavaScript functions with parameters
+            </div>
+            
+            <a href="crmtog://call?name=alert&args=[%22Function%20called%20from%20URI!%22]" class="test-button">
+                Call Alert Function
+            </a>
+            
+            <a href="crmtog://call?name=setTimeout&args=[%22()%20%3D%3E%20alert(%27Delayed%20message!%27)%22%2C%202000]" class="test-button">
+                Call setTimeout
+            </a>
+            
+            <div class="uri-display">crmtog://call?name=alert&args=[%22Function%20called%20from%20URI!%22]</div>
+        </div>
+
+        <!-- Script Execution Tests -->
+        <div class="test-section">
+            <h3>📜 Script Execution Tests</h3>
+            <div class="description">
+                Test running registered JavaScript scripts
+            </div>
+            
+            <a href="crmtog://script?name=testScript&args=arg1%2Carg2" class="test-button">
+                Run Test Script
+            </a>
+            
+            <a href="crmtog://script?name=myScript" class="test-button">
+                Run My Script
+            </a>
+            
+            <div class="uri-display">crmtog://script?name=testScript&args=arg1%2Carg2</div>
+        </div>
+
+        <!-- Short Form Tests -->
+        <div class="test-section">
+            <h3>⚡ Short Form Tests</h3>
+            <div class="description">
+                Test simplified URI formats
+            </div>
+            
+            <a href="crmtog://?url=https://www.microsoft.com" class="test-button">
+                Navigate (Short Form)
+            </a>
+            
+            <a href="crmtog://?script=myScript" class="test-button">
+                Run Script (Short Form)
+            </a>
+            
+            <div class="uri-display">crmtog://?url=https://www.microsoft.com</div>
+        </div>
+
+        <!-- Advanced Tests -->
+        <div class="test-section">
+            <h3>🔬 Advanced Tests</h3>
+            <div class="description">
+                Test complex URI scenarios
+            </div>
+            
+            <a href="crmtog://navigate?url=https://www.bing.com&method=navigate" class="test-button">
+                Navigate with Method
+            </a>
+            
+            <a href="crmtog://exec?js=window.open(%27https://www.google.com%27%2C%20%27_blank%27)" class="test-button danger">
+                Open New Window
+            </a>
+            
+            <a href="crmtog://execres?js=JSON.stringify({timestamp:%20Date.now(),%20userAgent:%20navigator.userAgent})" class="test-button">
+                Get Browser Info
+            </a>
+            
+            <div class="uri-display">crmtog://navigate?url=https://www.bing.com&method=navigate</div>
+        </div>
+
+        <!-- Test Results Area -->
+        <div class="test-section">
+            <h3>📋 Test Results</h3>
+            <div class="description">
+                Check the CRMTogether PWA Host application for results of your tests
+            </div>
+            
+            <div class="status warning">
+                <strong>Note:</strong> Results will appear in the CRMTogether PWA Host application window. 
+                Make sure the app is running and visible to see the effects of your URI tests.
+            </div>
+        </div>
+
+        <!-- Manual URI Input -->
+        <div class="test-section">
+            <h3>✏️ Manual URI Test</h3>
+            <div class="description">
+                Test your own custom URIs
+            </div>
+            
+            <input type="text" id="customUri" placeholder="Enter custom crmtog:// URI here" 
+                   style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;">
+            
+            <button onclick="testCustomUri()" class="test-button success">
+                Test Custom URI
+            </button>
+            
+            <div class="uri-display" id="customUriDisplay">Enter a URI above to see it here</div>
+        </div>
+    </div>
+
+    <script>
+        function testCustomUri() {
+            const uri = document.getElementById('customUri').value;
+            const display = document.getElementById('customUriDisplay');
+            
+            if (!uri) {
+                alert('Please enter a URI to test');
+                return;
+            }
+            
+            if (!uri.startsWith('crmtog://')) {
+                alert('URI must start with crmtog://');
+                return;
+            }
+            
+            display.textContent = uri;
+            
+            // Try to navigate to the URI
+            try {
+                window.location.href = uri;
+            } catch (e) {
+                alert('Error testing URI: ' + e.message);
+            }
+        }
+
+        // Add some test functions to the page for URI testing
+        window.testFunction = function(message) {
+            alert('Test function called with: ' + message);
+            return 'Function executed successfully';
+        };
+
+        window.getPageInfo = function() {
+            return {
+                title: document.title,
+                url: window.location.href,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            };
+        };
+
+        // Log when page loads
+        console.log('CRMTogether PWA Host URI Test Page loaded');
+        console.log('Available test functions: testFunction, getPageInfo');
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        input[type="text"] {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PWA Host API Test</h1>
+        
+        <div class="section">
+            <h3>API Status</h3>
+            <button onclick="checkApiStatus()">Check API Status</button>
+            <div id="api-status" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>Home Page Management</h3>
+            <input type="text" id="homepage-url" placeholder="Enter URL (e.g., https://google.com)" value="https://google.com">
+            <button onclick="setHomePage()">Set Home Page</button>
+            <button onclick="getHomePage()">Get Home Page</button>
+            <div id="homepage-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>Navigation</h3>
+            <input type="text" id="navigate-url" placeholder="Enter URL to navigate to" value="https://github.com">
+            <button onclick="navigate()">Navigate</button>
+            <button onclick="reload()">Reload</button>
+            <button onclick="goBack()">Go Back</button>
+            <button onclick="getCurrentUrl()">Get Current URL</button>
+            <button onclick="getTitle()">Get Title</button>
+            <div id="navigation-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>Window Controls</h3>
+            <button onclick="bringToFront()">Bring to Front</button>
+            <input type="number" id="width" placeholder="Width" value="800" style="width: 80px;">
+            <input type="number" id="height" placeholder="Height" value="600" style="width: 80px;">
+            <button onclick="setSize()">Set Size</button>
+            <button onclick="getVersion()">Get Version</button>
+            <div id="window-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>JavaScript Execution</h3>
+            <input type="text" id="js-code" placeholder="Enter JavaScript code" value="alert('Hello from PWA API!')" style="width: 300px;">
+            <button onclick="executeScript()">Execute Script</button>
+            <div id="script-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>Logging</h3>
+            <input type="text" id="log-message" placeholder="Enter message to log" value="Test message from PWA API">
+            <button onclick="logMessage()">Log Message</button>
+            <div id="log-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        function checkApiStatus() {
+            try {
+                if (window.pwa) {
+                    showResult('api-status', '✅ PWA API is available!', false);
+                } else {
+                    showResult('api-status', '❌ PWA API is not available. Make sure you\'re running in the PWA host.', true);
+                }
+            } catch (e) {
+                showResult('api-status', `❌ Error checking API: ${e.message}`, true);
+            }
+        }
+
+        async function setHomePage() {
+            try {
+                const url = document.getElementById('homepage-url').value;
+                if (!url) {
+                    showResult('homepage-result', '❌ Please enter a URL', true);
+                    return;
+                }
+                const result = await window.pwa.setHomePage(url);
+                showResult('homepage-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('homepage-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function getHomePage() {
+            try {
+                const result = await window.pwa.getHomePage();
+                showResult('homepage-result', `✅ Current home page: ${result}`, false);
+            } catch (e) {
+                showResult('homepage-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function navigate() {
+            try {
+                const url = document.getElementById('navigate-url').value;
+                if (!url) {
+                    showResult('navigation-result', '❌ Please enter a URL', true);
+                    return;
+                }
+                const result = await window.pwa.navigate(url);
+                showResult('navigation-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('navigation-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function reload() {
+            try {
+                const result = await window.pwa.reload();
+                showResult('navigation-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('navigation-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function goBack() {
+            try {
+                const result = await window.pwa.goBack();
+                showResult('navigation-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('navigation-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function getCurrentUrl() {
+            try {
+                const result = await window.pwa.getCurrentUrl();
+                showResult('navigation-result', `✅ Current URL: ${result}`, false);
+            } catch (e) {
+                showResult('navigation-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function getTitle() {
+            try {
+                const result = await window.pwa.getTitle();
+                showResult('navigation-result', `✅ Current title: ${result}`, false);
+            } catch (e) {
+                showResult('navigation-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function bringToFront() {
+            try {
+                const result = await window.pwa.bringToFront();
+                showResult('window-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('window-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function setSize() {
+            try {
+                const width = parseInt(document.getElementById('width').value);
+                const height = parseInt(document.getElementById('height').value);
+                if (!width || !height) {
+                    showResult('window-result', '❌ Please enter valid width and height', true);
+                    return;
+                }
+                const result = await window.pwa.setSize(width, height);
+                showResult('window-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('window-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function getVersion() {
+            try {
+                const result = await window.pwa.getVersion();
+                showResult('window-result', `✅ Version: ${result}`, false);
+            } catch (e) {
+                showResult('window-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function executeScript() {
+            try {
+                const js = document.getElementById('js-code').value;
+                if (!js) {
+                    showResult('script-result', '❌ Please enter JavaScript code', true);
+                    return;
+                }
+                const result = await window.pwa.executeScript(js);
+                showResult('script-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('script-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        async function logMessage() {
+            try {
+                const message = document.getElementById('log-message').value;
+                if (!message) {
+                    showResult('log-result', '❌ Please enter a message', true);
+                    return;
+                }
+                const result = await window.pwa.log(message);
+                showResult('log-result', `✅ ${result}`, false);
+            } catch (e) {
+                showResult('log-result', `❌ Error: ${e.message}`, true);
+            }
+        }
+
+        // Check API status when page loads
+        window.addEventListener('load', checkApiStatus);
+    </script>
+</body>
+</html>
