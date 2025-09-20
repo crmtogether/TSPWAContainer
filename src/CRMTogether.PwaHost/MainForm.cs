@@ -1052,7 +1052,6 @@ namespace CRMTogether.PwaHost
                         DaylightName = TimeZoneInfo.Local.DaylightName
                     }
                 },
-                sentItem = false,
                 companies = (object)null
             };
         }
