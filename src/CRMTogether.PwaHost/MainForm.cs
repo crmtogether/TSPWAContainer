@@ -24,6 +24,7 @@ namespace CRMTogether.PwaHost
         private static readonly string[] AllowedPrefixes = new[] {
             "https://",
             "http://localhost",
+            "http://",
             "file:///"
         };
 
@@ -557,6 +558,110 @@ namespace CRMTogether.PwaHost
         }
         public void SetUserAgent(string userAgent) { if (_webView?.CoreWebView2 == null) return; try { _webView.CoreWebView2.Settings.UserAgent = userAgent; } catch { } }
         public string GetUserAgent() { try { return _webView.CoreWebView2?.Settings?.UserAgent ?? string.Empty; } catch { return string.Empty; } }
+        
+        public void OpenEntity(string entityType, string entityId, string emailAddress="", string phoneNumber="",
+         string address="", string name="", string ContactName="")
+        {
+            try
+            {
+                LogDebug($"OpenEntity called with type: {entityType}, id: {entityId}");
+                SetStatusMessage($"Opening {entityType} with ID: {entityId}");
+                
+                // Build a minimal EML-like JSON object using the provided emailAddress and phoneNumber
+                //customMessage is our own property for searching on 3rd party codes...codeOrId is the id of the entity or a code parsed on the server side
+                var emailObject = new
+                {
+                    customMessage = new {
+                        entity = entityType,
+                        codeOrId = entityId,
+                        emailAddress = emailAddress ?? "",
+                        phoneNumber = phoneNumber ?? ""
+                    },
+                    from = new
+                    {
+                        emailAddress = emailAddress ?? "",
+                        displayName = name ?? emailAddress ?? "",
+                        type = (string)null
+                    },
+                    replyto = (string)null,
+                    fullName = name ?? emailAddress ?? "",
+                    phoneNumbers = new [] {
+                        new {
+                            number = phoneNumber ?? ""
+                        }
+                    },
+                    to = new[]
+                    {
+                        new
+                        {
+                            emailAddress = emailAddress ?? "",
+                            displayName = ContactName ?? emailAddress ?? "",
+                            type = (string)null
+                        }
+                    },
+                    cc = new object[0],
+                    bcc = new object[0],
+                    subject = "",
+                    body = "",
+                    htmlBody = (string)null,
+                    attachments = (object)null,
+                    entryid = $"ENTITY_{entityType}_{entityId}",
+                    urls = new object[0],
+                    addresses = new [] {
+                        new {
+                            address = address ?? ""
+                        }
+                    },
+                    sentItem = false,
+                    receivedDateTime = new
+                    {
+                        year = DateTime.Now.Year,
+                        month = DateTime.Now.Month,
+                        day = DateTime.Now.Day,
+                        hour = DateTime.Now.Hour,
+                        minute = DateTime.Now.Minute,
+                        second = DateTime.Now.Second,
+                        raw = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
+                        rawutc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                        TZ = new
+                        {
+                            StandardName = TimeZoneInfo.Local.StandardName,
+                            DaylightName = TimeZoneInfo.Local.DaylightName
+                        }
+                    },
+                    sentDateTime = new
+                    {
+                        year = DateTime.Now.Year,
+                        month = DateTime.Now.Month,
+                        day = DateTime.Now.Day,
+                        hour = DateTime.Now.Hour,
+                        minute = DateTime.Now.Minute,
+                        second = DateTime.Now.Second,
+                        raw = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
+                        rawutc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                        TZ = new
+                        {
+                            StandardName = TimeZoneInfo.Local.StandardName,
+                            DaylightName = TimeZoneInfo.Local.DaylightName
+                        }
+                    },
+                    companies = (object)null
+                };
+
+                // Serialize to JSON
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);
+
+                // Call the browser function as in the EML test function
+                var _ = CallBrowserFunctionAsync("changeSelectedEmail", json);
+                
+                LogDebug($"OpenEntity placeholder completed for {entityType}:{entityId}");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in OpenEntity: {ex.Message}");
+                SetStatusMessage($"Error opening {entityType}: {ex.Message}");
+            }
+        }
 
         // Additional methods for PwaHostObject
         public void SetSize(int width, int height)
@@ -947,6 +1052,7 @@ namespace CRMTogether.PwaHost
                         DaylightName = TimeZoneInfo.Local.DaylightName
                     }
                 },
+                sentItem = false,
                 companies = (object)null
             };
         }

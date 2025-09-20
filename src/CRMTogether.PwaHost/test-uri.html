@@ -351,6 +351,32 @@
             </div>
         </div>
 
+        <!-- OpenEntity Test -->
+        <div class="test-section">
+            <h3>🔗 OpenEntity Tests</h3>
+            <div class="description">
+                Test the OpenEntity method with different entity types and contact information.
+            </div>
+            
+            <button onclick="testOpenEntity('contact', '12345', 'john.doe@example.com', '+1234567890')" class="test-button success">
+                Test Contact Entity
+            </button>
+            
+            <button onclick="testOpenEntity('lead', '67890', 'jane.smith@example.com', '+0987654321')" class="test-button">
+                Test Lead Entity
+            </button>
+            
+            <button onclick="testOpenEntity('opportunity', 'abc123', 'sales@company.com', '+5555555555')" class="test-button">
+                Test Opportunity Entity
+            </button>
+            
+            <button onclick="testOpenEntity('account', 'xyz789', 'info@business.com', '')" class="test-button">
+                Test Account Entity (No Phone)
+            </button>
+            
+            <div class="uri-display" id="openEntityDisplay">Click a button above to test OpenEntity</div>
+        </div>
+
         <!-- Manual URI Input -->
         <div class="test-section">
             <h3>✏️ Manual URI Test</h3>
@@ -370,6 +396,24 @@
     </div>
 
     <script>
+        function testOpenEntity(entityType, entityId, emailAddress, phoneNumber) {
+            const display = document.getElementById('openEntityDisplay');
+            
+            try {
+                // Build the crmtog:// URI for OpenEntity
+                const uri = `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}&emailAddress=${encodeURIComponent(emailAddress || '')}&phoneNumber=${encodeURIComponent(phoneNumber || '')}`;
+                
+                display.textContent = uri;
+                
+                // Navigate to the URI
+                window.location.href = uri;
+                
+            } catch (e) {
+                display.textContent = 'Error creating OpenEntity URI: ' + e.message;
+                console.error('OpenEntity URI error:', e);
+            }
+        }
+
         function testCustomUri() {
             const uri = document.getElementById('customUri').value;
             const display = document.getElementById('customUriDisplay');

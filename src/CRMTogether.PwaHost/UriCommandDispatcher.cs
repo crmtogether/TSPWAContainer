@@ -18,6 +18,18 @@ namespace CRMTogether.PwaHost
 
             var kv = HttpUtility.ParseQueryString(query.Replace(';','&'));
             string method = kv["method"] ?? kv["m"];
+            
+            // If no method parameter found, use the path as the method name
+            if (string.IsNullOrWhiteSpace(method) && !string.IsNullOrWhiteSpace(path))
+            {
+                method = path;
+                // Remove trailing slash if present
+                if (method.EndsWith("/"))
+                {
+                    method = method.Substring(0, method.Length - 1);
+                }
+            }
+                        
             if (string.IsNullOrWhiteSpace(method))
             {
                 var url = kv["url"];
@@ -25,9 +37,13 @@ namespace CRMTogether.PwaHost
                 var script = kv["script"];
                 if (!string.IsNullOrWhiteSpace(script)) { RunScriptByName(script, kv["args"] ?? ""); return; }
             }
-
             switch ((method ?? "").ToLowerInvariant())
             {
+                case "openentity":
+                case "oe":
+                    form.OpenEntity(kv["entityType"] ?? "", kv["entityId"] ?? "", kv["emailAddress"] ?? "", kv["phoneNumber"] ?? "", kv["address"] ?? "", kv["name"] ?? "", kv["ContactName"] ?? "" );
+                    form.BringToFront();
+                    return;
                 case "navigate":
                 case "nav":
                     form.Navigate(kv["url"] ?? "");
