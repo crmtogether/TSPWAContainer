@@ -18,6 +18,8 @@ namespace CRMTogether.PwaHost
         private readonly List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
         private MenuStrip _menu;
         private string _pendingUrl;
+        private StatusStrip _statusStrip;
+        private ToolStripStatusLabel _statusLabel;
 
         private static readonly string[] AllowedPrefixes = new[] {
             "https://",
@@ -36,6 +38,24 @@ namespace CRMTogether.PwaHost
             StartPosition = FormStartPosition.Manual;
             AllowDrop = true;
 
+            // Add global exception handling
+            Application.ThreadException += (sender, e) =>
+            {
+                LogDebug($"Unhandled thread exception: {e.Exception.Message}");
+                LogDebug($"Stack trace: {e.Exception.StackTrace}");
+                SetStatusMessage($"Error: {e.Exception.Message}");
+                // MessageBox.Show(this, $"An unexpected error occurred:\n{e.Exception.Message}\n\nThe application will continue running.", "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var ex = e.ExceptionObject as Exception;
+                LogDebug($"Unhandled domain exception: {ex?.Message}");
+                LogDebug($"Stack trace: {ex?.StackTrace}");
+                SetStatusMessage($"Critical Error: {ex?.Message}");
+                // MessageBox.Show(this, $"A critical error occurred:\n{ex?.Message}\n\nThe application may need to be restarted.", "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
+
             _menu = BuildMenu();
             this.MainMenuStrip = _menu;
 
@@ -43,7 +63,7 @@ namespace CRMTogether.PwaHost
             var tableLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 2,
+                RowCount = 3,
                 ColumnCount = 1,
                 Padding = new Padding(0)
             };
@@ -51,6 +71,7 @@ namespace CRMTogether.PwaHost
             // Configure the rows
             tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); // Menu row
             tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // WebView row
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); // Status row
 
             // Create a panel for the menu
             var menuPanel = new Panel
@@ -70,10 +91,16 @@ namespace CRMTogether.PwaHost
 
             _webView = new WebView2Wrapper { Dock = DockStyle.Fill };
             webViewPanel.Controls.Add(_webView);
+
+            // Create status strip
+            _statusStrip = new StatusStrip();
+            _statusLabel = new ToolStripStatusLabel("Ready");
+            _statusStrip.Items.Add(_statusLabel);
             
             // Add panels to the table layout
             tableLayout.Controls.Add(menuPanel, 0, 0);
             tableLayout.Controls.Add(webViewPanel, 0, 1);
+            tableLayout.Controls.Add(_statusStrip, 0, 2);
             
             // Add the table layout to the form
             Controls.Add(tableLayout);
@@ -119,48 +146,107 @@ namespace CRMTogether.PwaHost
         {
             if (_initialized) return;
 
-            var wa = Screen.FromControl(this).WorkingArea;
-            int width = 390;
-            int height = (int)(wa.Height * 0.90);
-            this.Size = new Size(width, height);
-            this.Location = new Point(wa.Right - this.Width, wa.Top);
-
-            var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                        "CRMTogether", "PwaHost", "WebView2UserData");
-            Directory.CreateDirectory(dataPath);
-
-            var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dataPath);
-            await _webView.EnsureCoreWebView2Async(env);
-
-            _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
-            _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
-            _webView.CoreWebView2.Settings.IsStatusBarEnabled = true;
-            _webView.CoreWebView2.Settings.IsZoomControlEnabled = true;
-
-            // Inject PWA host object into the web page
-            await InjectPwaHostObject();
-
-            _webView.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-            _webView.CoreWebView2.WebResourceRequested += (s, e) =>
+            try
             {
-                try
+                var wa = Screen.FromControl(this).WorkingArea;
+                int width = 390;
+                int height = (int)(wa.Height * 0.90);
+                this.Size = new Size(width, height);
+                this.Location = new Point(wa.Right - this.Width, wa.Top);
+
+                var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                            "CRMTogether", "PwaHost", "WebView2UserData");
+                Directory.CreateDirectory(dataPath);
+
+                LogDebug("Creating WebView2 environment...");
+                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dataPath);
+                LogDebug("WebView2 environment created successfully");
+
+                LogDebug("Initializing WebView2...");
+                await _webView.EnsureCoreWebView2Async(env);
+                LogDebug("WebView2 initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error during WebView2 initialization: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+                SetStatusMessage($"WebView2 initialization failed: {ex.Message}");
+                // MessageBox.Show(this, $"Failed to initialize WebView2: {ex.Message}\n\nPlease try restarting the application.", "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                LogDebug("Configuring WebView2 settings...");
+                _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+                _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+                _webView.CoreWebView2.Settings.IsStatusBarEnabled = true;
+                _webView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+                LogDebug("WebView2 settings configured successfully");
+
+                // Inject PWA host object into the web page
+                LogDebug("Injecting PWA host object...");
+                await InjectPwaHostObject();
+                LogDebug("PWA host object injected successfully");
+
+                LogDebug("Setting up WebView2 event handlers...");
+                _webView.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+                _webView.CoreWebView2.WebResourceRequested += (s, e) =>
                 {
-                    foreach (var kv in _extraHeaders)
+                    try
                     {
-                        try { e.Request.Headers.SetHeader(kv.Key, kv.Value); } catch { }
+                        foreach (var kv in _extraHeaders)
+                        {
+                            try { e.Request.Headers.SetHeader(kv.Key, kv.Value); } catch { }
+                        }
                     }
-                }
-                catch { }
-            };
+                    catch (Exception ex)
+                    {
+                        LogDebug($"Error in WebResourceRequested handler: {ex.Message}");
+                    }
+                };
 
-            // Re-inject PWA host object when navigation completes
-            _webView.CoreWebView2.NavigationCompleted += async (s, e) =>
-            {
-                if (e.IsSuccess)
+                // Re-inject PWA host object when navigation completes
+                _webView.CoreWebView2.NavigationCompleted += async (s, e) =>
                 {
-                    await InjectPwaHostObject();
-                }
-            };
+                    try
+                    {
+                        LogDebug($"Navigation completed. Success: {e.IsSuccess}");
+                        if (e.IsSuccess)
+                        {
+                            await InjectPwaHostObject();
+                            // Save the current URL as the last visited URL
+                            SaveCurrentUrl();
+                        }
+                        else
+                        {
+                            LogDebug($"Navigation failed: {e.WebErrorStatus}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogDebug($"Error in NavigationCompleted handler: {ex.Message}");
+                    }
+                };
+
+                // Add error event handlers
+                _webView.CoreWebView2.ProcessFailed += (s, e) =>
+                {
+                    LogDebug($"WebView2 process failed: {e.ProcessFailedKind}, ExitCode: {e.ExitCode}");
+                    SetStatusMessage($"WebView2 process failed: {e.ProcessFailedKind}");
+                    // MessageBox.Show(this, $"WebView2 process failed: {e.ProcessFailedKind}\n\nThe application may need to be restarted.", "WebView2 Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                };
+
+                LogDebug("WebView2 event handlers set up successfully");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error setting up WebView2: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+                SetStatusMessage($"WebView2 configuration failed: {ex.Message}");
+                // MessageBox.Show(this, $"Failed to configure WebView2: {ex.Message}", "Configuration Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             _initialized = true;
 
@@ -174,36 +260,169 @@ namespace CRMTogether.PwaHost
         {
             try
             {
+                LogDebug($"StartWatchers called. Current watchers count: {_watchers.Count}");
+                
                 foreach (var w in _watchers) { try { w.Dispose(); } catch { } }
                 _watchers.Clear();
 
+                LogDebug($"WatchedFolders count: {Program.Config.WatchedFolders.Count}");
                 foreach (var folder in Program.Config.WatchedFolders)
                 {
-                    if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) continue;
+                    LogDebug($"Processing folder: '{folder}'");
+                    if (string.IsNullOrWhiteSpace(folder))
+                    {
+                        LogDebug("Folder is null or whitespace, skipping");
+                        continue;
+                    }
+                    if (!Directory.Exists(folder))
+                    {
+                        LogDebug($"Directory does not exist: '{folder}', skipping");
+                        continue;
+                    }
+                    
                     var fsw = new FileSystemWatcher(folder);
                     fsw.IncludeSubdirectories = false;
                     fsw.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite;
                     fsw.Created += (s, e) => OnFileAppeared(e.FullPath);
+                    fsw.Renamed += (s, e) => OnFileAppeared(e.FullPath);
                     fsw.EnableRaisingEvents = true;
                     _watchers.Add(fsw);
+                    
+                    LogDebug($"Created FileSystemWatcher for: '{folder}', Enabled: {fsw.EnableRaisingEvents}");
                 }
+                
+                LogDebug($"Total watchers created: {_watchers.Count}");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in StartWatchers: {ex.Message}");
+            }
         }
 
         private void OnFileAppeared(string path)
         {
             try
             {
-                if (string.Equals(Path.GetExtension(path), ".eml", StringComparison.OrdinalIgnoreCase))
+                LogDebug($"OnFileAppeared called for: '{path}'");
+                var extension = Path.GetExtension(path);
+                LogDebug($"File extension: '{extension}'");
+                
+                // Skip .tmp files - these are temporary files created during downloads
+                if (path.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
                 {
-                    this.BeginInvoke((Action)(async () =>
-                    {
-                        await ProcessEmlFileWithRetry(path);
-                    }));
+                    LogDebug("Skipping .tmp file - temporary download file, waiting for final rename");
+                    return;
+                }
+                
+                if (string.Equals(extension, ".eml", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(extension, ".phone", StringComparison.OrdinalIgnoreCase))
+                {
+                    LogDebug($"Copying {extension} file to processing folder");
+                    CopyFileToProcessingFolder(path);
+                }
+                else
+                {
+                    LogDebug($"File extension '{extension}' not supported");
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in OnFileAppeared: {ex.Message}");
+            }
+        }
+
+        private void CopyFileToProcessingFolder(string sourcePath)
+        {
+            try
+            {
+                // Ensure processing folder exists
+                Program.Config.EnsureProcessingFolders();
+                
+                // Generate unique filename to avoid conflicts
+                var fileName = Path.GetFileName(sourcePath);
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                var extension = Path.GetExtension(fileName);
+                var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                var uniqueFileName = $"{nameWithoutExt}_{timestamp}{extension}";
+                var processingPath = Path.Combine(Program.Config.ProcessingFolder, uniqueFileName);
+                
+                LogDebug($"Copying file from '{sourcePath}' to '{processingPath}'");
+                
+                // Copy the file to processing folder
+                File.Copy(sourcePath, processingPath, overwrite: true);
+                
+                LogDebug($"File copied successfully to processing folder");
+                
+                // Process the copied file
+                this.BeginInvoke((Action)(async () =>
+                {
+                    await ProcessFileFromProcessingFolder(processingPath);
+                }));
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error copying file to processing folder: {ex.Message}");
+            }
+        }
+
+        private async Task ProcessFileFromProcessingFolder(string processingPath)
+        {
+            try
+            {
+                var extension = Path.GetExtension(processingPath);
+                LogDebug($"Processing file from processing folder: {processingPath}");
+                
+                if (string.Equals(extension, ".eml", StringComparison.OrdinalIgnoreCase))
+                {
+                    await ProcessEmlFileWithRetry(processingPath);
+                }
+                else if (string.Equals(extension, ".phone", StringComparison.OrdinalIgnoreCase))
+                {
+                    await ProcessPhoneFileWithRetry(processingPath);
+                }
+                
+                // Move file to processed folder after successful processing
+                MoveFileToProcessedFolder(processingPath);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing file from processing folder: {ex.Message}");
+                // Move file to processed folder even if processing failed
+                MoveFileToProcessedFolder(processingPath);
+            }
+        }
+
+        private void MoveFileToProcessedFolder(string processingPath)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(processingPath);
+                var processedPath = Path.Combine(Program.Config.ProcessedFolder, fileName);
+                
+                LogDebug($"Moving file from '{processingPath}' to '{processedPath}'");
+                
+                // Move the file to processed folder
+                File.Move(processingPath, processedPath);
+                
+                LogDebug($"File moved successfully to processed folder");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error moving file to processed folder: {ex.Message}");
+                // If move fails, try to delete the processing file to clean up
+                try
+                {
+                    if (File.Exists(processingPath))
+                    {
+                        File.Delete(processingPath);
+                        LogDebug("Cleaned up processing file after failed move");
+                    }
+                }
+                catch (Exception deleteEx)
+                {
+                    LogDebug($"Error cleaning up processing file: {deleteEx.Message}");
+                }
+            }
         }
 
         private void OnDragEnter(object sender, DragEventArgs e)
@@ -218,9 +437,14 @@ namespace CRMTogether.PwaHost
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 foreach (var f in files)
                 {
-                    if (string.Equals(Path.GetExtension(f), ".eml", StringComparison.OrdinalIgnoreCase))
+                    var extension = Path.GetExtension(f);
+                    if (string.Equals(extension, ".eml", StringComparison.OrdinalIgnoreCase))
                     {
                         _ = ProcessEmlFile(f); // Fire and forget async call
+                    }
+                    else if (string.Equals(extension, ".phone", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _ = ProcessPhoneFile(f); // Fire and forget async call
                     }
                     else
                     {
@@ -270,6 +494,24 @@ namespace CRMTogether.PwaHost
             catch { return string.Empty; }
         }
         public string GetCurrentUrl() => _webView.CoreWebView2?.Source ?? string.Empty;
+        
+        private void SaveCurrentUrl()
+        {
+            try
+            {
+                var currentUrl = GetCurrentUrl();
+                if (!string.IsNullOrWhiteSpace(currentUrl) && IsAllowed(currentUrl))
+                {
+                    Program.Config.LastUrl = currentUrl;
+                    Program.Config.Save();
+                    LogDebug($"Saved last URL: {currentUrl}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error saving current URL: {ex.Message}");
+            }
+        }
         public string GetTitle()
         {
             try { var t = _webView.CoreWebView2?.DocumentTitle; if (!string.IsNullOrEmpty(t)) return t; } catch { }
@@ -331,16 +573,22 @@ namespace CRMTogether.PwaHost
         public async Task<object> CallBrowserFunctionAsync(string functionName, params object[] args)
         {
             if (_webView?.CoreWebView2 == null || string.IsNullOrWhiteSpace(functionName)) 
+            {
+                LogDebug($"Cannot call browser function {functionName}: WebView2 is null or function name is empty");
                 return null;
+            }
 
             try
             {
+                LogDebug($"Calling browser function: {functionName}");
                 var result = await _webView.ExecuteScriptFunctionAsync(functionName, args);
+                LogDebug($"Browser function {functionName} returned: {result}");
                 return result;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error calling browser function {functionName}: {ex.Message}");
+                LogDebug($"Error calling browser function {functionName}: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
@@ -348,10 +596,14 @@ namespace CRMTogether.PwaHost
         public async Task<T> CallBrowserFunctionAsync<T>(string functionName, params object[] args)
         {
             if (_webView?.CoreWebView2 == null || string.IsNullOrWhiteSpace(functionName)) 
+            {
+                LogDebug($"Cannot call browser function {functionName}: WebView2 is null or function name is empty");
                 return default(T);
+            }
 
             try
             {
+                LogDebug($"Calling browser function: {functionName} (generic)");
                 var result = await _webView.ExecuteScriptFunctionAsync(functionName, args);
                 
                 // Try to deserialize the result to the specified type
@@ -378,17 +630,23 @@ namespace CRMTogether.PwaHost
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error calling browser function {functionName}: {ex.Message}");
+                LogDebug($"Error calling browser function {functionName}: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
                 return default(T);
             }
         }
 
         private async Task InjectPwaHostObject()
         {
-            if (_webView?.CoreWebView2 == null) return;
+            if (_webView?.CoreWebView2 == null) 
+            {
+                LogDebug("Cannot inject PWA host object: WebView2 is null");
+                return;
+            }
 
             try
             {
+                LogDebug("Injecting PWA host object...");
                 // Use AddHostObjectToScript to inject the C# object directly
                 _webView.CoreWebView2.AddHostObjectToScript("pwa", new PwaHostObject(this));
                 
@@ -397,10 +655,13 @@ namespace CRMTogether.PwaHost
                     window.pwa = chrome.webview.hostObjects.pwa;
                     console.log('PWA Host object injected successfully');
                 ");
+                LogDebug("PWA host object injected successfully");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error injecting PWA host object: {ex.Message}");
+                LogDebug($"Error injecting PWA host object: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+                // Don't throw the exception, just log it
             }
         }
 
@@ -421,6 +682,43 @@ namespace CRMTogether.PwaHost
             Program.Config.JsScripts.RemoveAll(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
             Program.Config.JsScripts.Add(new JsScriptEntry { Name = name, File = p });
             Program.Config.Save();
+        }
+
+        private void LogDebug(string message)
+        {
+            try
+            {
+                var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+                                         "CRMTogether", "PwaHost", "debug.log");
+                var logDir = Path.GetDirectoryName(logPath);
+                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+                
+                var logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}{Environment.NewLine}";
+                File.AppendAllText(logPath, logEntry);
+                
+                // Also write to debug output
+                System.Diagnostics.Debug.WriteLine(message);
+            }
+            catch { }
+        }
+
+        private void SetStatusMessage(string message)
+        {
+            try
+            {
+                if (_statusLabel != null)
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() => _statusLabel.Text = message));
+                    }
+                    else
+                    {
+                        _statusLabel.Text = message;
+                    }
+                }
+            }
+            catch { }
         }
 
         public string[] ListScripts()
@@ -476,7 +774,7 @@ namespace CRMTogether.PwaHost
                 {
                     if (attempt == maxRetries)
                     {
-                        MessageBox.Show(this, $"Error processing EML file after {maxRetries} attempts: {ex.Message}", "EML Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        SetStatusMessage($"Error processing EML file after {maxRetries} attempts: {ex.Message}");
                         return;
                     }
                 }
@@ -517,16 +815,76 @@ namespace CRMTogether.PwaHost
                 
                 if (result != null)
                 {
-                    MessageBox.Show(this, $"EML processed successfully!\nSubject: {info.Subject}\nFrom: {info.From}\nResult: {result}", "EML Processed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    SetStatusMessage($"EML processed successfully! Subject: {info.Subject}, From: {info.From}");
                 }
                 else
                 {
-                    MessageBox.Show(this, $"EML processed but changeSelectedEmail function not found\nSubject: {info.Subject}\nFrom: {info.From}", "EML Processed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    SetStatusMessage($"EML processed but changeSelectedEmail function not found. Subject: {info.Subject}, From: {info.From}");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Error processing EML file: {ex.Message}", "EML Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetStatusMessage($"Error processing EML file: {ex.Message}");
+            }
+        }
+
+        private async Task ProcessPhoneFileWithRetry(string filePath)
+        {
+            const int maxRetries = 5;
+            const int delayMs = 1000; // 1 second delay between retries
+            
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    // Check if file is accessible
+                    if (IsFileAccessible(filePath))
+                    {
+                        await ProcessPhoneFile(filePath);
+                        return; // Success, exit retry loop
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (attempt == maxRetries)
+                    {
+                        SetStatusMessage($"Error processing phone file after {maxRetries} attempts: {ex.Message}");
+                        return;
+                    }
+                }
+                
+                // Wait before next attempt
+                if (attempt < maxRetries)
+                {
+                    await Task.Delay(delayMs);
+                }
+            }
+        }
+
+        private async Task ProcessPhoneFile(string filePath)
+        {
+            try
+            {
+                SetStatusMessage($"Processing phone file: {Path.GetFileName(filePath)}");
+                // Read the phone number from the file
+                var phoneNumber = File.ReadAllText(filePath);
+                phoneNumber = phoneNumber.Trim(); // Remove any whitespace
+                
+                if (string.IsNullOrWhiteSpace(phoneNumber))
+                {
+                    SetStatusMessage("Phone file is empty or contains no phone number");
+                    return;
+                }
+                
+                // Call the Vue.js function
+                var jsCode = $"vueAppInstance.$phonebox.changeSelectedPhone(\"{phoneNumber}\");";
+                var result = await _webView.CoreWebView2.ExecuteScriptAsync(jsCode);
+                
+                SetStatusMessage($"Phone file processed successfully! Phone Number: {phoneNumber}");
+            }
+            catch (Exception ex)
+            {
+                SetStatusMessage($"Error processing phone file: {ex.Message}");
             }
         }
 
@@ -719,16 +1077,16 @@ namespace CRMTogether.PwaHost
                 
                 if (result != null)
                 {
-                    MessageBox.Show(this, $"changeSelectedEmail called successfully!\nResult: {result}", "Test Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show(this, $"changeSelectedEmail called successfully!\nResult: {result}", "Test Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show(this, "changeSelectedEmail function not found or returned null", "Test Result", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    SetStatusMessage("changeSelectedEmail function not found or returned null");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Error calling changeSelectedEmail: {ex.Message}", "Test Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetStatusMessage($"Error calling changeSelectedEmail: {ex.Message}");
             }
         }
     }

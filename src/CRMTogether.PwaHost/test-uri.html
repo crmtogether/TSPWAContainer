@@ -276,6 +276,68 @@
             <div class="uri-display">crmtog://navigate?url=https://www.bing.com&method=navigate</div>
         </div>
 
+        <!-- Phone File Download Tests -->
+        <div class="test-section">
+            <h3>📱 Phone File Download Tests</h3>
+            <div class="description">
+                Generate and download test files with .phone extension containing random phone numbers.
+                <br><strong>Note:</strong> The CRMTogether PWA Host app watches your Downloads folder for .phone files.
+                <br>After downloading, you can also drag the .phone file directly onto the app window.
+            </div>
+            
+            <button onclick="downloadRandomPhoneFile()" class="test-button success">
+                Download Random Phone File
+            </button>
+            
+            <button onclick="downloadCustomPhoneFile()" class="test-button">
+                Download Custom Phone File
+            </button>
+            
+            <button onclick="downloadToDownloadsFolder()" class="test-button">
+                Download to Downloads Folder
+            </button>
+            
+            <div class="uri-display" id="phoneFileDisplay">Click a button above to generate a phone file</div>
+            
+            <div class="status info" style="margin-top: 15px;">
+                <strong>Instructions:</strong>
+                <br>1. Click "Download to Downloads Folder" to save directly to your Downloads folder
+                <br>2. Or download normally and drag the .phone file onto the CRMTogether PWA Host app window
+                <br>3. The app will process the phone number and call vueAppInstance.$phonebox.changeSelectedPhone()
+            </div>
+        </div>
+
+        <!-- EML File Download Tests -->
+        <div class="test-section">
+            <h3>📧 EML File Download Tests</h3>
+            <div class="description">
+                Generate and download test files with .eml extension containing random email content.
+                <br><strong>Note:</strong> The CRMTogether PWA Host app watches your Downloads folder for .eml files.
+                <br>After downloading, you can also drag the .eml file directly onto the app window.
+            </div>
+            
+            <button onclick="downloadRandomEmlFile()" class="test-button success">
+                Download Random EML File
+            </button>
+            
+            <button onclick="downloadCustomEmlFile()" class="test-button">
+                Download Custom EML File
+            </button>
+            
+            <button onclick="downloadEmlToDownloadsFolder()" class="test-button">
+                Download EML to Downloads Folder
+            </button>
+            
+            <div class="uri-display" id="emlFileDisplay">Click a button above to generate an EML file</div>
+            
+            <div class="status info" style="margin-top: 15px;">
+                <strong>Instructions:</strong>
+                <br>1. Click "Download EML to Downloads Folder" to save directly to your Downloads folder
+                <br>2. Or download normally and drag the .eml file onto the CRMTogether PWA Host app window
+                <br>3. The app will process the email and call changeSelectedEmail() function
+            </div>
+        </div>
+
         <!-- Test Results Area -->
         <div class="test-section">
             <h3>📋 Test Results</h3>
@@ -347,9 +409,247 @@
             };
         };
 
+        // Phone file download functions
+        function generateRandomPhoneNumber() {
+            // Generate a random phone number in various formats
+            const formats = [
+                // US format: (XXX) XXX-XXXX
+                () => `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // International format: +1-XXX-XXX-XXXX
+                () => `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // Simple format: XXX-XXX-XXXX
+                () => `${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // International with country code: +44-XXXX-XXXXXX
+                () => `+44-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 900000) + 100000}`,
+                // European format: +49-XXX-XXXXXXX
+                () => `+49-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000000) + 1000000}`
+            ];
+            
+            const randomFormat = formats[Math.floor(Math.random() * formats.length)];
+            return randomFormat();
+        }
+
+        function downloadPhoneFile(phoneNumber, filename) {
+            const content = `Phone Number: ${phoneNumber}\nGenerated: ${new Date().toISOString()}\nType: Test Phone File\n\nThis is a test file generated by CRMTogether PWA Host URI Test Page.`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadRandomPhoneFile() {
+            const phoneNumber = generateRandomPhoneNumber();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-phone-${timestamp}.phone`;
+            
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber})`;
+        }
+
+        function downloadCustomPhoneFile() {
+            const phoneNumber = prompt('Enter a phone number for the test file:');
+            if (!phoneNumber) {
+                return;
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `custom-phone-${timestamp}.phone`;
+            
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber})`;
+        }
+
+        function downloadToDownloadsFolder() {
+            const phoneNumber = generateRandomPhoneNumber();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-phone-${timestamp}.phone`;
+            
+            // Try to download to Downloads folder using a data URI approach
+            // Note: This will still use the browser's default download location
+            // but we'll provide clear instructions
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber}) - Check your Downloads folder or drag the file onto the app window`;
+            
+            // Show additional instructions
+            setTimeout(() => {
+                alert(`File downloaded: ${filename}\n\nTo test the app reaction:\n1. Go to your Downloads folder\n2. Find the file: ${filename}\n3. Drag it onto the CRMTogether PWA Host app window\n\nOr the app should automatically detect it if it's watching your Downloads folder.`);
+            }, 500);
+        }
+
+        // EML file generation functions
+        function generateRandomEmailContent() {
+            const subjects = [
+                "Meeting Request for Next Week",
+                "Project Update - Q4 Review",
+                "Invoice #INV-2024-001",
+                "Vacation Request Approval",
+                "New Client Onboarding",
+                "System Maintenance Notice",
+                "Quarterly Report Available",
+                "Team Building Event",
+                "Budget Review Meeting",
+                "Security Alert - Password Reset"
+            ];
+            
+            const senders = [
+                "john.doe@company.com",
+                "sarah.smith@company.com", 
+                "mike.johnson@company.com",
+                "lisa.wilson@company.com",
+                "david.brown@company.com",
+                "emma.davis@company.com",
+                "alex.garcia@company.com",
+                "jessica.miller@company.com"
+            ];
+            
+            const recipients = [
+                "team@company.com",
+                "manager@company.com",
+                "support@company.com",
+                "hr@company.com",
+                "finance@company.com"
+            ];
+            
+            const bodies = [
+                "Hello,\n\nI hope this email finds you well. I wanted to follow up on our previous discussion regarding the upcoming project deadline.\n\nBest regards,",
+                "Hi there,\n\nPlease find attached the requested documents for your review. Let me know if you need any clarification.\n\nThanks,",
+                "Dear Team,\n\nThis is a reminder about the upcoming meeting scheduled for next Tuesday at 2:00 PM.\n\nPlease confirm your attendance.\n\nRegards,",
+                "Hello,\n\nI wanted to inform you about the recent changes to our company policies. Please review the attached document.\n\nBest,",
+                "Hi,\n\nThank you for your recent inquiry. I've attached the information you requested.\n\nPlease let me know if you have any questions.\n\nKind regards,"
+            ];
+            
+            const subject = subjects[Math.floor(Math.random() * subjects.length)];
+            const from = senders[Math.floor(Math.random() * senders.length)];
+            const to = recipients[Math.floor(Math.random() * recipients.length)];
+            const body = bodies[Math.floor(Math.random() * bodies.length)];
+            const date = new Date();
+            
+            return {
+                subject: subject,
+                from: from,
+                to: to,
+                body: body,
+                date: date.toUTCString()
+            };
+        }
+
+        function generateEmlContent(emailData) {
+            const boundary = "----=_Part_" + Math.random().toString(36).substr(2, 9);
+            
+            return `Return-Path: <${emailData.from}>
+Received: from mail.company.com (mail.company.com [192.168.1.100])
+	by mail.company.com (Postfix) with ESMTP id 1234567890
+	for <${emailData.to}>; ${emailData.date}
+Message-ID: <${Math.random().toString(36).substr(2, 16)}@company.com>
+Date: ${emailData.date}
+From: ${emailData.from}
+To: ${emailData.to}
+Subject: ${emailData.subject}
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="${boundary}"
+
+--${boundary}
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+${emailData.body}
+
+--${boundary}
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>${emailData.body.replace(/\n/g, '<br>')}</p>
+</body>
+</html>
+
+--${boundary}--`;
+        }
+
+        function downloadEmlFile(emailData, filename) {
+            const content = generateEmlContent(emailData);
+            
+            const blob = new Blob([content], { type: 'message/rfc822' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadRandomEmlFile() {
+            const emailData = generateRandomEmailContent();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject})`;
+        }
+
+        function downloadCustomEmlFile() {
+            const subject = prompt('Enter email subject:') || 'Test Email Subject';
+            const from = prompt('Enter sender email:') || 'test@company.com';
+            const to = prompt('Enter recipient email:') || 'recipient@company.com';
+            const body = prompt('Enter email body:') || 'This is a test email body.';
+            
+            const emailData = {
+                subject: subject,
+                from: from,
+                to: to,
+                body: body,
+                date: new Date().toUTCString()
+            };
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `custom-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject})`;
+        }
+
+        function downloadEmlToDownloadsFolder() {
+            const emailData = generateRandomEmailContent();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject}) - Check your Downloads folder or drag the file onto the app window`;
+            
+            // Show additional instructions
+            setTimeout(() => {
+                alert(`EML file downloaded: ${filename}\n\nSubject: ${emailData.subject}\nFrom: ${emailData.from}\nTo: ${emailData.to}\n\nTo test the app reaction:\n1. Go to your Downloads folder\n2. Find the file: ${filename}\n3. Drag it onto the CRMTogether PWA Host app window\n\nOr the app should automatically detect it if it's watching your Downloads folder.`);
+            }, 500);
+        }
+
         // Log when page loads
         console.log('CRMTogether PWA Host URI Test Page loaded');
         console.log('Available test functions: testFunction, getPageInfo');
+        console.log('Available phone functions: downloadRandomPhoneFile, downloadCustomPhoneFile');
+        console.log('Available EML functions: downloadRandomEmlFile, downloadCustomEmlFile');
     </script>
 </body>
 </html>
