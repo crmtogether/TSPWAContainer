@@ -11,6 +11,7 @@ namespace CRMTogether.PwaHost
         private Button _btnAdd, _btnRemove, _btnClose;
         private Label _lbl, _lblStartupUrl;
         private TextBox _txtStartupUrl;
+        private bool _isSaving = false;
 
         public SettingsForm()
         {
@@ -162,24 +163,104 @@ namespace CRMTogether.PwaHost
                 if (sel != null) _list.Items.Remove(sel);
             };
 
-            _btnClose.Click += (s,e) => { SaveAndClose(); };
-            FormClosing += (s,e) => { SaveAndClose(); };
+            _btnClose.Click += (s,e) => { 
+                try 
+                { 
+                    SaveAndClose(); 
+                } 
+                catch (Exception ex) 
+                { 
+                    System.Diagnostics.Debug.WriteLine($"Error in close button click: {ex.Message}");
+                    // Try to close the form even if SaveAndClose fails
+                    try { Close(); } catch { }
+                } 
+            };
+            FormClosing += (s,e) => { 
+                try 
+                { 
+                    SaveAndClose(); 
+                } 
+                catch (Exception ex) 
+                { 
+                    System.Diagnostics.Debug.WriteLine($"Error in FormClosing: {ex.Message}");
+                    // Don't prevent closing even if SaveAndClose fails
+                } 
+            };
         }
 
         private void SaveAndClose()
         {
-            Program.Config.WatchedFolders.Clear();
-            foreach (var it in _list.Items) Program.Config.WatchedFolders.Add(it as string);
-            
-            // Save startup URL
-            Program.Config.StartupUrl = _txtStartupUrl.Text?.Trim();
-            if (string.IsNullOrWhiteSpace(Program.Config.StartupUrl))
+            try
             {
-                Program.Config.StartupUrl = "https://crmtogether.com/univex-app-home/";
+                // Prevent multiple simultaneous calls
+                if (_isSaving)
+                {
+                    return;
+                }
+                _isSaving = true;
+
+                // Ensure we're on the UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(SaveAndClose));
+                    return;
+                }
+
+                // Check if form is already disposed or disposing
+                if (IsDisposed || Disposing)
+                {
+                    return;
+                }
+
+                // Update watched folders
+                Program.Config.WatchedFolders.Clear();
+                foreach (var it in _list.Items) 
+                {
+                    if (it is string folder && !string.IsNullOrWhiteSpace(folder))
+                    {
+                        Program.Config.WatchedFolders.Add(folder);
+                    }
+                }
+                
+                // Save startup URL
+                Program.Config.StartupUrl = _txtStartupUrl.Text?.Trim();
+                if (string.IsNullOrWhiteSpace(Program.Config.StartupUrl))
+                {
+                    Program.Config.StartupUrl = "https://crmtogether.com/univex-app-home/";
+                }
+                
+                // Save configuration
+                Program.Config.Save();
+                
+                // Close the form safely
+                if (!IsDisposed && !Disposing)
+                {
+                    Close();
+                }
             }
-            
-            Program.Config.Save();
-            Close();
+            catch (Exception ex)
+            {
+                // Log the error and show a user-friendly message
+                System.Diagnostics.Debug.WriteLine($"Error in SaveAndClose: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Try to close the form even if saving failed
+                try
+                {
+                    if (!IsDisposed && !Disposing)
+                    {
+                        Close();
+                    }
+                }
+                catch (Exception closeEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error closing form: {closeEx.Message}");
+                }
+            }
+            finally
+            {
+                _isSaving = false;
+            }
         }
     }
 }
