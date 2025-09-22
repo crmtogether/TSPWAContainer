@@ -95,3 +95,38 @@ URL Priority (in order):
   3. Default startup URL (fallback)
 
 This ensures you always return to where you left off, making the app more convenient to use.
+
+PARAMETER MANAGEMENT SYSTEM:
+============================
+
+The app provides a flexible parameter management system that allows external integrations to build up context information before opening entities. This is particularly useful for CRM integrations where you need to pass contact information, addresses, phone numbers, etc.
+
+Parameter Management Commands:
+  crmtog://addParam?name=emailAddress&value=user@example.com
+  crmtog://addParam?name=phoneNumber&value=+1234567890
+  crmtog://addParam?name=address&value=3015 Lake Drive
+  crmtog://addParam?name=name&value=John Doe
+  crmtog://addParam?name=ContactName&value=Jane Smith
+
+Parameter Management:
+  crmtog://clearParams                    # Clear all stored parameters
+  crmtog://getParams                      # Get current parameters (for debugging)
+
+Entity Opening:
+  crmtog://openEntity?entityType=contact&entityId=12345
+  crmtog://openEntity?entityType=lead&entityId=67890
+  crmtog://openEntity?entityType=opportunity&entityId=abc123
+
+Usage Flow:
+  1. Build Context: Call multiple addParam URIs to store context information
+  2. Open Entity: Call openEntity with just the entity type and ID
+  3. The app will use all stored parameters to populate the EML structure
+
+Example Integration Flow:
+  crmtog://addParam?name=emailAddress&value=john.doe@company.com
+  crmtog://addParam?name=phoneNumber&value=+1-555-123-4567
+  crmtog://addParam?name=address&value=123 Main Street, City, State 12345
+  crmtog://addParam?name=name&value=John Doe
+  crmtog://openEntity?entityType=contact&entityId=12345
+
+The openEntity command will create an EML-like structure with all the stored parameters included in the customMessage object, making it available to the web application for processing.

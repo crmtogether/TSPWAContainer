@@ -62,6 +62,18 @@
         .test-button.success:hover {
             background-color: #229954;
         }
+        .test-button.warning {
+            background-color: #f39c12;
+        }
+        .test-button.warning:hover {
+            background-color: #e67e22;
+        }
+        .test-button.info {
+            background-color: #9b59b6;
+        }
+        .test-button.info:hover {
+            background-color: #8e44ad;
+        }
         .uri-display {
             background-color: #2c3e50;
             color: #ecf0f1;
@@ -351,30 +363,86 @@
             </div>
         </div>
 
+        <!-- Parameter Management Tests -->
+        <div class="test-section">
+            <h3>📝 Parameter Management Tests</h3>
+            <div class="description">
+                Test the parameter management system to build context before opening entities.
+            </div>
+            
+            <button onclick="testAddParam('emailAddress', 'john.doe@example.com')" class="test-button success">
+                Add Email Address
+            </button>
+            
+            <button onclick="testAddParam('phoneNumber', '+1234567890')" class="test-button">
+                Add Phone Number
+            </button>
+            
+            <button onclick="testAddParam('address', '3015 Lake Drive, Citywest, Dublin 24')" class="test-button">
+                Add Address
+            </button>
+            
+            <button onclick="testAddParam('name', 'John Doe')" class="test-button">
+                Add Name
+            </button>
+            
+            <button onclick="testAddParam('ContactName', 'Jane Smith')" class="test-button">
+                Add Contact Name
+            </button>
+            
+            <button onclick="testClearParams()" class="test-button warning">
+                Clear All Parameters
+            </button>
+            
+            <button onclick="testGetParams()" class="test-button info">
+                Get Current Parameters
+            </button>
+            
+            <div class="uri-display" id="paramDisplay">Click buttons above to manage parameters</div>
+        </div>
+
         <!-- OpenEntity Test -->
         <div class="test-section">
             <h3>🔗 OpenEntity Tests</h3>
             <div class="description">
-                Test the OpenEntity method with different entity types and contact information.
+                Test the OpenEntity method with different entity types. Parameters should be set first using the Parameter Management section above.
             </div>
             
-            <button onclick="testOpenEntity('contact', '12345', 'john.doe@example.com', '+1234567890')" class="test-button success">
+            <button onclick="testOpenEntitySimple('contact', '12345')" class="test-button success">
                 Test Contact Entity
             </button>
             
-            <button onclick="testOpenEntity('lead', '67890', 'jane.smith@example.com', '+0987654321')" class="test-button">
+            <button onclick="testOpenEntitySimple('lead', '67890')" class="test-button">
                 Test Lead Entity
             </button>
             
-            <button onclick="testOpenEntity('opportunity', 'abc123', 'sales@company.com', '+5555555555')" class="test-button">
+            <button onclick="testOpenEntitySimple('opportunity', 'abc123')" class="test-button">
                 Test Opportunity Entity
             </button>
             
-            <button onclick="testOpenEntity('account', 'xyz789', 'info@business.com', '')" class="test-button">
-                Test Account Entity (No Phone)
+            <button onclick="testOpenEntitySimple('account', 'xyz789')" class="test-button">
+                Test Account Entity
             </button>
             
             <div class="uri-display" id="openEntityDisplay">Click a button above to test OpenEntity</div>
+        </div>
+
+        <!-- Complete Integration Flow Test -->
+        <div class="test-section">
+            <h3>🔄 Complete Integration Flow Test</h3>
+            <div class="description">
+                Test the complete flow: add parameters, then open entity. This demonstrates how external integrations would use the system.
+            </div>
+            
+            <button onclick="testCompleteFlow('contact', '12345')" class="test-button success">
+                Complete Contact Flow
+            </button>
+            
+            <button onclick="testCompleteFlow('lead', '67890')" class="test-button">
+                Complete Lead Flow
+            </button>
+            
+            <div class="uri-display" id="completeFlowDisplay">Click a button above to test complete integration flow</div>
         </div>
 
         <!-- Manual URI Input -->
@@ -396,22 +464,136 @@
     </div>
 
     <script>
-        function testOpenEntity(entityType, entityId, emailAddress, phoneNumber) {
+        // Parameter Management Functions
+        function testAddParam(name, value) {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = `crmtog://addParam?name=${encodeURIComponent(name)}&value=${encodeURIComponent(value)}`;
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating addParam URI: ' + e.message;
+                console.error('addParam URI error:', e);
+            }
+        }
+
+        function testClearParams() {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = 'crmtog://clearParams';
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating clearParams URI: ' + e.message;
+                console.error('clearParams URI error:', e);
+            }
+        }
+
+        function testGetParams() {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = 'crmtog://getParams';
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating getParams URI: ' + e.message;
+                console.error('getParams URI error:', e);
+            }
+        }
+
+        // Simple OpenEntity function (uses stored parameters)
+        function testOpenEntitySimple(entityType, entityId) {
             const display = document.getElementById('openEntityDisplay');
             
             try {
-                // Build the crmtog:// URI for OpenEntity
-                const uri = `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}&emailAddress=${encodeURIComponent(emailAddress || '')}&phoneNumber=${encodeURIComponent(phoneNumber || '')}`;
-                
+                const uri = `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`;
                 display.textContent = uri;
-                
-                // Navigate to the URI
                 window.location.href = uri;
-                
             } catch (e) {
                 display.textContent = 'Error creating OpenEntity URI: ' + e.message;
                 console.error('OpenEntity URI error:', e);
             }
+        }
+
+        // Complete integration flow test
+        function testCompleteFlow(entityType, entityId) {
+            const display = document.getElementById('completeFlowDisplay');
+            
+            try {
+                const steps = [
+                    { uri: 'crmtog://addParam?name=emailAddress&value=john.doe@example.com', description: 'Add Email Address' },
+                    { uri: 'crmtog://addParam?name=phoneNumber&value=+1234567890', description: 'Add Phone Number' },
+                    { uri: 'crmtog://addParam?name=address&value=3015 Lake Drive, Citywest, Dublin 24', description: 'Add Address' },
+                    { uri: 'crmtog://addParam?name=name&value=John Doe', description: 'Add Name' },
+                    { uri: `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`, description: 'Open Entity' }
+                ];
+                
+                let html = '<strong>Complete Integration Flow:</strong><br><br>';
+                html += '<strong>Manual Steps (click each button to execute):</strong><br>';
+                
+                steps.forEach((step, index) => {
+                    html += `<button onclick="executeStep('${step.uri}', '${step.description}')" class="test-button" style="margin: 2px; font-size: 12px; padding: 5px 10px;">${index + 1}. ${step.description}</button><br>`;
+                });
+                
+                html += '<br><strong>Or execute all steps automatically:</strong><br>';
+                html += '<button onclick="executeAllSteps()" class="test-button success" style="margin: 5px;">Execute All Steps</button><br>';
+                
+                html += '<br><strong>Step Details:</strong><br>';
+                steps.forEach((step, index) => {
+                    html += `${index + 1}. ${step.description}<br><code style="font-size: 11px; background: #f0f0f0; padding: 2px;">${step.uri}</code><br><br>`;
+                });
+                
+                display.innerHTML = html;
+                
+            } catch (e) {
+                display.textContent = 'Error creating complete flow: ' + e.message;
+                console.error('Complete flow error:', e);
+            }
+        }
+
+        // Execute a single step
+        function executeStep(uri, description) {
+            const display = document.getElementById('completeFlowDisplay');
+            display.innerHTML += `<br>→ Executing: ${description}`;
+            window.location.href = uri;
+        }
+
+        // Execute all steps with delays
+        function executeAllSteps() {
+            const steps = [
+                { uri: 'crmtog://addParam?name=emailAddress&value=john.doe@example.com', description: 'Add Email Address' },
+                { uri: 'crmtog://addParam?name=phoneNumber&value=+1234567890', description: 'Add Phone Number' },
+                { uri: 'crmtog://addParam?name=address&value=3015 Lake Drive, Citywest, Dublin 24', description: 'Add Address' },
+                { uri: 'crmtog://addParam?name=name&value=John Doe', description: 'Add Name' },
+                { uri: 'crmtog://openEntity?entityType=contact&entityId=12345', description: 'Open Entity' }
+            ];
+            
+            const display = document.getElementById('completeFlowDisplay');
+            display.innerHTML += '<br><br><strong>Auto-executing all steps...</strong>';
+            
+            executeStepsSequentially(steps, 0, display);
+        }
+
+        // Helper function to execute steps sequentially
+        function executeStepsSequentially(steps, currentIndex, display) {
+            if (currentIndex >= steps.length) {
+                display.innerHTML += '<br><br><strong>✅ All steps completed!</strong>';
+                return;
+            }
+            
+            const step = steps[currentIndex];
+            display.innerHTML += `<br>→ Executing step ${currentIndex + 1}: ${step.description}`;
+            
+            // Execute the current step
+            window.location.href = step.uri;
+            
+            // Wait 2 seconds before executing the next step
+            setTimeout(() => {
+                executeStepsSequentially(steps, currentIndex + 1, display);
+            }, 2000);
         }
 
         function testCustomUri() {

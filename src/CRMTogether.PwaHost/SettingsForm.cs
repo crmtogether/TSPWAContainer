@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -17,6 +18,17 @@ namespace CRMTogether.PwaHost
             Width = 640;
             Height = 480;
             StartPosition = FormStartPosition.CenterParent;
+            
+            // Set the form icon
+            try
+            {
+                Icon = new Icon(System.IO.Path.Combine(Application.StartupPath, "images", "crmtogethericon.ico"));
+            }
+            catch (Exception ex)
+            {
+                // Silently handle icon loading errors
+                System.Diagnostics.Debug.WriteLine($"Error loading icon: {ex.Message}");
+            }
 
             // Startup URL section
             _lblStartupUrl = new Label { 

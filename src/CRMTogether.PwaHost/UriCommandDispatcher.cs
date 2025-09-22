@@ -39,9 +39,18 @@ namespace CRMTogether.PwaHost
             }
             switch ((method ?? "").ToLowerInvariant())
             {
+                case "clearparams":
+                    form.clearParams();
+                    break;
+                case "addparam":
+                    form.addParam(kv["name"] ?? "", kv["value"] ?? "");
+                    break;
+                case "getparams":
+                    form.getParams();
+                    break;
                 case "openentity":
-                case "oe":
-                    form.OpenEntity(kv["entityType"] ?? "", kv["entityId"] ?? "", kv["emailAddress"] ?? "", kv["phoneNumber"] ?? "", kv["address"] ?? "", kv["name"] ?? "", kv["ContactName"] ?? "" );
+                    // Call OpenEntity with simplified signature
+                    form.OpenEntity(kv["entityType"] ?? "", kv["entityId"] ?? "");
                     form.BringToFront();
                     return;
                 case "navigate":

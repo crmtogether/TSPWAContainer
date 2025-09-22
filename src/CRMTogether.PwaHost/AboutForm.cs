@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
@@ -16,6 +17,17 @@ namespace CRMTogether.PwaHost
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
+            
+            // Set the form icon
+            try
+            {
+                Icon = new Icon(System.IO.Path.Combine(Application.StartupPath, "images", "crmtogethericon.ico"));
+            }
+            catch (Exception ex)
+            {
+                // Silently handle icon loading errors
+                System.Diagnostics.Debug.WriteLine($"Error loading icon: {ex.Message}");
+            }
 
             var asm = Assembly.GetExecutingAssembly();
             var name = asm.GetName();

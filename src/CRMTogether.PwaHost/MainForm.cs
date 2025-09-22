@@ -20,6 +20,7 @@ namespace CRMTogether.PwaHost
         private string _pendingUrl;
         private StatusStrip _statusStrip;
         private ToolStripStatusLabel _statusLabel;
+        private readonly Dictionary<string, string> _contextParams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         private static readonly string[] AllowedPrefixes = new[] {
             "https://",
@@ -38,6 +39,16 @@ namespace CRMTogether.PwaHost
             Height = 0;
             StartPosition = FormStartPosition.Manual;
             AllowDrop = true;
+            
+            // Set the form icon
+            try
+            {
+                Icon = new Icon(Path.Combine(Application.StartupPath, "images", "crmtogethericon.ico"));
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error loading icon: {ex.Message}");
+            }
 
             // Add global exception handling
             Application.ThreadException += (sender, e) =>
@@ -559,44 +570,79 @@ namespace CRMTogether.PwaHost
         public void SetUserAgent(string userAgent) { if (_webView?.CoreWebView2 == null) return; try { _webView.CoreWebView2.Settings.UserAgent = userAgent; } catch { } }
         public string GetUserAgent() { try { return _webView.CoreWebView2?.Settings?.UserAgent ?? string.Empty; } catch { return string.Empty; } }
         
-        public void OpenEntity(string entityType, string entityId, string emailAddress="", string phoneNumber="",
-         string address="", string name="", string ContactName="")
+        public void addParam(string name, string value)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            _contextParams[name] = value ?? string.Empty;
+            LogDebug($"Added context parameter: {name} = {value}");
+        }
+
+        public void clearParams()
+        {
+            _contextParams.Clear();
+            LogDebug("Cleared all context parameters");
+        }
+
+        public string getParams()
+        {
+            var paramList = new List<string>();
+            foreach (var param in _contextParams)
+            {
+                paramList.Add($"{param.Key}={param.Value}");
+            }
+            return string.Join(", ", paramList);
+        }
+
+        private string GetContextParam(string key)
+        {
+            return _contextParams.TryGetValue(key, out string value) ? value : "";
+        }
+
+        public void OpenEntity(string entityType, string entityId)
         {
             try
             {
                 LogDebug($"OpenEntity called with type: {entityType}, id: {entityId}");
                 SetStatusMessage($"Opening {entityType} with ID: {entityId}");
                 
-                // Build a minimal EML-like JSON object using the provided emailAddress and phoneNumber
+                // Build a minimal EML-like JSON object using stored context parameters
                 //customMessage is our own property for searching on 3rd party codes...codeOrId is the id of the entity or a code parsed on the server side
+                var customMessageData = new Dictionary<string, object>
+                {
+                    ["entity"] = entityType,
+                    ["codeOrId"] = entityId
+                };
+                
+                // Add all stored context parameters to customMessage
+                foreach (var param in _contextParams)
+                {
+                    customMessageData[param.Key] = param.Value;
+                }
+                
                 var emailObject = new
                 {
-                    customMessage = new {
-                        entity = entityType,
-                        codeOrId = entityId,
-                        emailAddress = emailAddress ?? "",
-                        phoneNumber = phoneNumber ?? ""
-                    },
+                    customMessage = customMessageData,
                     from = new
                     {
-                        emailAddress = emailAddress ?? "",
-                        displayName = name ?? emailAddress ?? "",
+                        emailAddress = GetContextParam("emailAddress"),
+                        displayName = GetContextParam("name") ?? GetContextParam("emailAddress"),
                         type = (string)null
                     },
                     replyto = (string)null,
-                    fullName = name ?? emailAddress ?? "",
+                    fullName = GetContextParam("name") ?? GetContextParam("emailAddress"),
                     phoneNumbers = new [] {
                         new {
-                            number = phoneNumber ?? ""
+                            type = "Mobile",
+                            number = GetContextParam("phoneNumber")
                         }
                     },
                     to = new[]
                     {
                         new
                         {
-                            emailAddress = emailAddress ?? "",
-                            displayName = ContactName ?? emailAddress ?? "",
-                            type = (string)null
+                            emailAddress = GetContextParam("emailAddress"),
+                            displayName = GetContextParam("ContactName") ?? GetContextParam("emailAddress"),
+                            type = "Business"
                         }
                     },
                     cc = new object[0],
@@ -609,7 +655,7 @@ namespace CRMTogether.PwaHost
                     urls = new object[0],
                     addresses = new [] {
                         new {
-                            address = address ?? ""
+                            address = GetContextParam("address")
                         }
                     },
                     sentItem = false,
@@ -1139,7 +1185,22 @@ namespace CRMTogether.PwaHost
                     attachments = (object)null,
                     entryid = "000000008D29C22795ED0F43AE13B26188F01E9A0700774E149E6B7EAB44AD9FF58B53D5D33C00000000010C0000774E149E6B7EAB44AD9FF58B53D5D33C000781D207C90000",
                     urls = new object[0],
-                    addresses = (object)null,
+                    addresses = new[]
+                    {
+                        new
+                        {
+                            fullAddress = "3015 Lake Drive, Citywest Business Campus, Citywest, Dublin 24, D24DKP4, Ireland",
+                            address1 = "3015 Lake Drive",
+                            address2 = "Citywest Business Campus",
+                            address3 = "Citywest",
+                            address4 = "Dublin 24",
+                            city = "Dublin",
+                            state = "Dublin",
+                            zip = "D24DKP4",
+                            country = "Ireland",
+                            type = "Business"
+                        }
+                    },
                     sentItem = false,
                     receivedDateTime = new
                     {
