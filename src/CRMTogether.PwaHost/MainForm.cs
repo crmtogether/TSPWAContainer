@@ -85,7 +85,7 @@ namespace CRMTogether.PwaHost
         );
 
         private static readonly Regex PhoneRegex = new Regex(
-            @"(\+?1[-.\s]?)?(\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|[0-9]{3}[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|\+?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9})",
+            @"(\+?1[-.\s]?)?(\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|[0-9]{3}[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|\+?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9})(?![0-9])",
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
 
@@ -249,7 +249,10 @@ namespace CRMTogether.PwaHost
             clipboard.DropDownItems.Add(mToggleClipboard);
             
             var mTestClipboard = new ToolStripMenuItem("Test Clipboard Check");
-            mTestClipboard.Click += (s, e) => TestClipboardCheck();
+            mTestClipboard.Click += (s, e) => {
+                LogDebug("Test Clipboard Check menu item clicked");
+                TestClipboardCheck();
+            };
             clipboard.DropDownItems.Add(mTestClipboard);
             
             ms.Items.Add(clipboard);
@@ -1558,9 +1561,9 @@ namespace CRMTogether.PwaHost
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        private void CheckClipboardChanges(object state)
+        private void CheckClipboardChanges(object state, bool forceCheck = false)
         {
-            if (!_clipboardMonitoringEnabled) 
+            if (!_clipboardMonitoringEnabled && !forceCheck) 
             {
                 LogDebug("Clipboard monitoring is disabled, skipping check");
                 return;
@@ -1571,7 +1574,7 @@ namespace CRMTogether.PwaHost
                 // Use Invoke to ensure we're on the UI thread when accessing clipboard
                 if (InvokeRequired)
                 {
-                    Invoke(new Action(() => CheckClipboardChanges(state)));
+                    Invoke(new Action(() => CheckClipboardChanges(state, forceCheck)));
                     return;
                 }
 
@@ -1645,12 +1648,20 @@ namespace CRMTogether.PwaHost
                 string contentType = null;
                 string uri = null;
                 
-                // Priority: Email > Phone > Website > Address (newlines) > Generic Text
+                // Priority: Email > Address (newlines) > Phone > Website > Generic Text
                 if (emailMatches.Count > 0)
                 {
                     detectedValue = emailMatches[0].Value;
                     contentType = "email";
                     uri = $"crmtog://context?value={Uri.EscapeDataString(detectedValue)}&source={source}&type={contentType}";
+                }
+                else if (content.Contains("\n") || content.Contains("\r"))
+                {
+                    // Text with newlines - likely a postal address (check this before phone to avoid false positives)
+                    LogDebug($"Address detected: content contains newlines");
+                    detectedValue = content.Trim();
+                    contentType = "address";
+                    uri = $"crmtog://address?value={Uri.EscapeDataString(detectedValue)}&source={source}";
                 }
                 else if (phoneMatches.Count > 0)
                 {
@@ -1663,14 +1674,6 @@ namespace CRMTogether.PwaHost
                     detectedValue = websiteMatches[0].Value;
                     contentType = "website";
                     uri = $"crmtog://website?value={Uri.EscapeDataString(detectedValue)}&source={source}";
-                }
-                else if (content.Contains("\n") || content.Contains("\r"))
-                {
-                    // Text with newlines - likely a postal address
-                    LogDebug($"Address detected: content contains newlines");
-                    detectedValue = content.Trim();
-                    contentType = "address";
-                    uri = $"crmtog://address?value={Uri.EscapeDataString(detectedValue)}&source={source}";
                 }
                 else if (!string.IsNullOrWhiteSpace(content.Trim()))
                 {
@@ -1720,9 +1723,39 @@ namespace CRMTogether.PwaHost
 
         private void TestClipboardCheck()
         {
-            LogDebug("Manual clipboard check triggered");
-            SetStatusMessage("Testing clipboard check...");
-            CheckClipboardChanges(null);
+            try
+            {
+                LogDebug("Manual clipboard check triggered");
+                SetStatusMessage("Testing clipboard check...");
+                LogDebug($"Clipboard monitoring enabled: {_clipboardMonitoringEnabled}");
+                
+                // Check if clipboard has any content at all
+                if (Clipboard.ContainsText())
+                {
+                    var clipboardText = Clipboard.GetText();
+                    LogDebug($"Clipboard contains text: '{clipboardText}' (length: {clipboardText?.Length ?? 0})");
+                    SetStatusMessage($"Clipboard contains: {clipboardText?.Substring(0, Math.Min(50, clipboardText?.Length ?? 0))}...");
+                }
+                else
+                {
+                    LogDebug("Clipboard does not contain text");
+                    SetStatusMessage("Clipboard does not contain text");
+                }
+                
+                if (!_clipboardMonitoringEnabled)
+                {
+                    LogDebug("Clipboard monitoring is disabled, but manual test should still work");
+                }
+                
+                CheckClipboardChanges(null, forceCheck: true);
+                LogDebug("Manual clipboard check completed");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in TestClipboardCheck: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+                SetStatusMessage($"Error in clipboard test: {ex.Message}");
+            }
         }
 
         protected override void WndProc(ref Message m)
