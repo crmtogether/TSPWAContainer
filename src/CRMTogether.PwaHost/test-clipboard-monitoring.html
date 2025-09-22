@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRMTogether Clipboard Monitoring Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+        .email {
+            background: #e8f4fd;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #0066cc;
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px;
+        }
+        .email:hover {
+            background: #d0e8ff;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>CRMTogether Clipboard Monitoring Test</h1>
+    
+    <div class="instructions">
+        <h3>How to Test:</h3>
+        <ol>
+            <li>Make sure the CRMTogether PWA Host application is running</li>
+            <li>Check the "Clipboard" menu - it should show "Disable Clipboard Monitoring" if enabled</li>
+            <li>Copy any of the content below (Ctrl+C or right-click copy):
+                <ul>
+                    <li><strong>Email addresses</strong> → triggers <code>crmtog://context</code></li>
+                    <li><strong>Phone numbers</strong> → triggers <code>crmtog://phone</code></li>
+                    <li><strong>Websites/URLs</strong> → triggers <code>crmtog://website</code></li>
+                    <li><strong>Postal addresses</strong> (text with newlines) → triggers <code>crmtog://address</code></li>
+                    <li><strong>Names/Company names</strong> → triggers <code>crmtog://text</code></li>
+                </ul>
+            </li>
+            <li>Or select text containing any of these types and copy it</li>
+            <li>The application should detect the content type and process it through the appropriate URI</li>
+            <li>Check the application's status bar for confirmation</li>
+            <li>Use "Clipboard > Test Clipboard Check" to manually test the current clipboard content</li>
+            <li>Check the debug log file for detailed information about what's happening</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Email Addresses</h3>
+        <p>Try copying these email addresses:</p>
+        
+        <div class="email" onclick="copyToClipboard(this.textContent)">john.doe@example.com</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">jane.smith@company.org</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">support@crmtogether.com</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">admin@test-domain.net</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">user123@demo.co.uk</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Phone Numbers</h3>
+        <p>Try copying these phone numbers:</p>
+        
+        <div class="email" onclick="copyToClipboard(this.textContent)">(555) 123-4567</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">555-123-4567</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">555.123.4567</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">+1 555 123 4567</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">+44 20 7946 0958</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Websites</h3>
+        <p>Try copying these websites:</p>
+        
+        <div class="email" onclick="copyToClipboard(this.textContent)">https://www.crmtogether.com</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">www.example.com</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">google.com</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">https://github.com/microsoft</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">stackoverflow.com</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Postal Addresses</h3>
+        <p>Try copying these postal addresses (text with newlines):</p>
+        
+        <div class="email" onclick="copyToClipboard(this.textContent)">123 Main Street
+Apt 4B
+New York, NY 10001</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">456 Oak Avenue
+Suite 200
+Los Angeles, CA 90210</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">789 Pine Road
+Chicago, IL 60601
+United States</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">10 Downing Street
+London SW1A 2AA
+United Kingdom</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Names and Company Names</h3>
+        <p>Try copying these names and company names:</p>
+        
+        <div class="email" onclick="copyToClipboard(this.textContent)">John Smith</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">Microsoft Corporation</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">Acme Industries</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">Sarah Johnson</div>
+        <div class="email" onclick="copyToClipboard(this.textContent)">Tech Solutions Inc</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Text with Embedded Emails</h3>
+        <p>Try selecting and copying text from these paragraphs:</p>
+        
+        <p>Contact our support team at <span class="email">help@crmtogether.com</span> for assistance with your account.</p>
+        
+        <p>For sales inquiries, please reach out to <span class="email">sales@company.com</span> or call our main office.</p>
+        
+        <p>Technical issues can be reported to <span class="email">tech@support.org</span> and we'll get back to you within 24 hours.</p>
+    </div>
+
+    <div class="test-section">
+        <h3>Multiple Emails in Text</h3>
+        <p>This paragraph contains multiple email addresses. Try copying the entire paragraph or just parts of it:</p>
+        
+        <p>Our team consists of: <span class="email">alice@team.com</span>, <span class="email">bob@team.com</span>, and <span class="email">charlie@team.com</span>. 
+        You can also contact our manager at <span class="email">manager@company.com</span> for urgent matters.</p>
+    </div>
+
+    <div class="test-section">
+        <h3>Debugging Information</h3>
+        <p>If the clipboard monitoring isn't working:</p>
+        <ul>
+            <li><strong>Check the menu:</strong> The "Clipboard" menu should show "Disable Clipboard Monitoring" if it's enabled</li>
+            <li><strong>Use Test Clipboard Check:</strong> Go to "Clipboard > Test Clipboard Check" to manually test the current clipboard content</li>
+            <li><strong>Check the debug log:</strong> Look for the debug log file at: <code>%LOCALAPPDATA%\CRMTogether\PwaHost\debug.log</code></li>
+            <li><strong>Check the status bar:</strong> The application's status bar will show messages about clipboard monitoring</li>
+            <li><strong>Try different content:</strong> Copy different types of text to see if the issue is with specific content</li>
+        </ul>
+    </div>
+
+    <div class="status" id="status">
+        <strong>Status:</strong> Ready for testing. Copy any email address above to test the clipboard monitoring.
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                document.getElementById('status').innerHTML = '<strong>Status:</strong> Copied "' + text + '" to clipboard. Check the CRMTogether application for processing.';
+            }).catch(function(err) {
+                document.getElementById('status').innerHTML = '<strong>Status:</strong> Error copying to clipboard: ' + err;
+            });
+        }
+
+        // Update status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('status').innerHTML = '<strong>Status:</strong> Page loaded. Ready for clipboard monitoring testing.';
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-CRMTogether.PwaHost — SINGLE INSTANCE + WM_COPYDATA forwarder + About box + menu layout fix + File Processing System
+CRMTogether.PwaHost — SINGLE INSTANCE + WM_COPYDATA forwarder + About box + menu layout fix + File Processing System + Intelligent Clipboard Monitoring
 
 Fixes:
   - MenuStrip is now set as MainMenuStrip and docked before WebView2; layout re-applied so it no longer overlaps/cuts off the WebView.
@@ -8,6 +8,10 @@ Added:
   - Automatic file processing system for .eml and .phone files
   - Last URL memory - app remembers and restores your last visited URL on startup
   - Safe file processing using processing/processed folder workflow
+  - Intelligent clipboard monitoring with automatic content type detection (emails, phones, websites, addresses, text)
+  - Real-time clipboard change notifications using Windows events (no polling)
+  - Global keyboard hook for Ctrl+C detection across all applications
+  - Debounced event processing to prevent excessive CPU usage
 
 Compat tweaks:
   - Only uses Headers.SetHeader(...) (avoid AppendHeader for older WebView2).
@@ -130,3 +134,74 @@ Example Integration Flow:
   crmtog://openEntity?entityType=contact&entityId=12345
 
 The openEntity command will create an EML-like structure with all the stored parameters included in the customMessage object, making it available to the web application for processing.
+
+CLIPBOARD MONITORING SYSTEM:
+============================
+
+The app includes intelligent clipboard monitoring that automatically detects and processes different types of content when copied or selected. This feature works across all applications and provides seamless integration with your CRM workflow.
+
+Content Type Detection:
+The system automatically detects and processes the following content types in order of priority:
+
+1. Email Addresses:
+   - Detects standard email formats (user@domain.com)
+   - Triggers: crmtog://context?value=email@domain.com&source=clipboard&type=email
+   - Stores as: emailAddress parameter
+
+2. Phone Numbers:
+   - Detects various phone formats: (555) 123-4567, 555-123-4567, +1 555 123 4567
+   - Triggers: crmtog://phone?value=(555)123-4567&source=clipboard
+   - Stores as: phoneNumber parameter
+
+3. Websites/URLs:
+   - Detects: https://example.com, www.example.com, example.com
+   - Triggers: crmtog://website?value=https://example.com&source=clipboard
+   - Stores as: website parameter
+
+4. Postal Addresses:
+   - Detects text containing newlines (multi-line addresses)
+   - Triggers: crmtog://address?value=123 Main St\nApt 4B\nCity, State 12345&source=clipboard
+   - Stores as: address parameter
+
+5. Generic Text (Names, Companies):
+   - Detects any other text that doesn't match the above patterns
+   - Triggers: crmtog://text?value=John Smith&source=clipboard
+   - Stores as: textValue parameter
+
+How It Works:
+- Real-time clipboard monitoring using Windows clipboard change notifications
+- Global keyboard hook detects Ctrl+C operations from any application
+- Event-based processing (no constant polling for better performance)
+- Debouncing prevents rapid-fire events (500ms cooldown)
+- Automatic content type detection and routing
+
+Menu Controls:
+- Clipboard → Toggle Clipboard Monitoring: Enable/disable monitoring
+- Clipboard → Test Clipboard Check: Manually test current clipboard content
+- Menu text shows current state: "Enable/Disable Clipboard Monitoring"
+
+Configuration:
+- Monitoring is enabled by default
+- Can be toggled on/off via the Clipboard menu
+- Status messages appear in the application status bar
+- Debug logging available at: %LOCALAPPDATA%\CRMTogether\PwaHost\debug.log
+
+Use Cases:
+- Copy a contact's email → Automatically creates email context
+- Copy a phone number → Triggers phone lookup/search
+- Copy a company website → Opens website context
+- Copy a person's name → Triggers name/contact search
+- Copy a company name → Triggers company lookup
+- Copy a postal address → Triggers address processing
+
+Integration with Existing Systems:
+- All detected content is processed through the existing URI command system
+- Uses the same OpenEntity method for EML building
+- Integrates with the parameter management system
+- Works seamlessly with the existing changeSelectedEmail browser function
+
+Performance:
+- Event-driven (no constant polling)
+- Minimal CPU usage
+- Debounced to prevent excessive processing
+- Only processes when clipboard actually changes

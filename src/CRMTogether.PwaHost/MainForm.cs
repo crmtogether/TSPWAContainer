@@ -7,11 +7,99 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace CRMTogether.PwaHost
 {
     public class MainForm : Form
     {
+        // Windows API declarations for clipboard monitoring and text selection
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetClipboardOwner();
+
+        [DllImport("user32.dll")]
+        private static extern bool IsClipboardFormatAvailable(uint format);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetOpenClipboardWindow();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr AttachThreadInput(IntPtr idAttach, IntPtr idAttachTo, bool fAttach);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr AddClipboardFormatListener(IntPtr hwnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+
+        private const int WM_GETTEXT = 0x000D;
+        private const int WM_GETTEXTLENGTH = 0x000E;
+        private const uint CF_TEXT = 1;
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int VK_LCONTROL = 0xA2;
+        private const int VK_RCONTROL = 0xA3;
+        private const int VK_C = 0x43;
+        private const int WM_CLIPBOARDUPDATE = 0x031D;
+
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private LowLevelKeyboardProc _proc = HookCallback;
+        private static IntPtr _hookID = IntPtr.Zero;
+
+        // Regex patterns for different content types
+        private static readonly Regex EmailRegex = new Regex(
+            @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase
+        );
+
+        private static readonly Regex PhoneRegex = new Regex(
+            @"(\+?1[-.\s]?)?(\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|[0-9]{3}[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}|\+?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9})",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase
+        );
+
+        private static readonly Regex WebsiteRegex = new Regex(
+            @"(https?://[^\s]+|www\.[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,})",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase
+        );
+
+        // Clipboard monitoring
+        private string _lastClipboardContent = "";
+        private bool _clipboardMonitoringEnabled = true;
+        private ToolStripMenuItem _toggleClipboardMenuItem;
+        public DateTime _lastClipboardCheck = DateTime.MinValue;
+        private const int CLIPBOARD_DEBOUNCE_MS = 500; // Prevent rapid-fire events
         private WebView2Wrapper _webView;
         private bool _initialized;
         private readonly Dictionary<string, string> _extraHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -70,6 +158,9 @@ namespace CRMTogether.PwaHost
 
             _menu = BuildMenu();
             this.MainMenuStrip = _menu;
+
+            // Initialize clipboard monitoring
+            InitializeClipboardMonitoring();
 
             // Create a table layout panel to properly manage the layout
             var tableLayout = new TableLayoutPanel
@@ -150,6 +241,22 @@ namespace CRMTogether.PwaHost
             mTestEmail.Click += async (s, e) => await TestChangeSelectedEmail();
             test.DropDownItems.Add(mTestEmail);
             ms.Items.Add(test);
+
+            // Add Clipboard menu
+            var clipboard = new ToolStripMenuItem("Clipboard");
+            var mToggleClipboard = new ToolStripMenuItem("Toggle Clipboard Monitoring");
+            mToggleClipboard.Click += (s, e) => ToggleClipboardMonitoring();
+            clipboard.DropDownItems.Add(mToggleClipboard);
+            
+            var mTestClipboard = new ToolStripMenuItem("Test Clipboard Check");
+            mTestClipboard.Click += (s, e) => TestClipboardCheck();
+            clipboard.DropDownItems.Add(mTestClipboard);
+            
+            ms.Items.Add(clipboard);
+
+            // Store reference to toggle menu item for updating text
+            _toggleClipboardMenuItem = mToggleClipboard;
+            UpdateClipboardMenuText();
 
             return ms;
         }
@@ -598,6 +705,126 @@ namespace CRMTogether.PwaHost
             return _contextParams.TryGetValue(key, out string value) ? value : "";
         }
 
+        public void ProcessContextValue(string value, string source, string type = "email")
+        {
+            try
+            {
+                LogDebug($"ProcessContextValue called with value: {value}, source: {source}, type: {type}");
+                SetStatusMessage($"Processing {type} value from {source}: {value}");
+                
+                // Store the value as a context parameter
+                addParam("emailAddress", value);
+                addParam("source", source);
+                addParam("contentType", type);
+                
+                // Create a context entity for the email
+                OpenEntity("email", value);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing context value: {ex.Message}");
+                SetStatusMessage($"Error processing context value: {ex.Message}");
+            }
+        }
+
+        public void ProcessPhoneValue(string value, string source)
+        {
+            try
+            {
+                LogDebug($"ProcessPhoneValue called with value: {value}, source: {source}");
+                SetStatusMessage($"Processing phone number from {source}: {value}");
+                
+                // Store the phone number as a context parameter
+                addParam("phoneNumber", value);
+                addParam("source", source);
+                addParam("contentType", "phone");
+
+                // Create a phone entity
+                OpenEntity("phone", value);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing phone value: {ex.Message}");
+                SetStatusMessage($"Error processing phone value: {ex.Message}");
+            }
+        }
+
+        public void ProcessWebsiteValue(string value, string source)
+        {
+            try
+            {
+                LogDebug($"ProcessWebsiteValue called with value: {value}, source: {source}");
+                SetStatusMessage($"Processing website from {source}: {value}");
+                
+                // Store the website as a context parameter
+                addParam("website", value);
+                addParam("source", source);
+                addParam("contentType", "website");
+                
+                // Create a website entity
+                OpenEntity("website", value);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing website value: {ex.Message}");
+                SetStatusMessage($"Error processing website value: {ex.Message}");
+            }
+        }
+
+        public void ProcessTextValue(string value, string source)
+        {
+            try
+            {
+                LogDebug($"ProcessTextValue called with value: {value}, source: {source}");
+                SetStatusMessage($"Processing text from {source}: {value}");
+                
+                // Store the text as a context parameter
+                addParam("textValue", value);
+                addParam("source", source);
+                addParam("contentType", "text");
+                
+                // Create a text entity (could be name, company, etc.)
+                OpenEntity("text", value);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing text value: {ex.Message}");
+                SetStatusMessage($"Error processing text value: {ex.Message}");
+            }
+        }
+
+        public void ProcessAddressValue(string value, string source)
+        {
+            try
+            {
+                LogDebug($"ProcessAddressValue called with value: '{value}', source: {source}");
+                LogDebug($"About to call SetStatusMessage for address processing");
+                SetStatusMessage($"Processing postal address from {source}: {value}");
+                LogDebug($"SetStatusMessage called successfully for address");
+                
+                // Store the address as a context parameter
+                addParam("address", value);
+                addParam("source", source);
+                addParam("contentType", "address");
+                
+                // Create an address entity
+                OpenEntity("address", value);
+                LogDebug($"ProcessAddressValue completed successfully");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing address value: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+                SetStatusMessage($"Error processing address value: {ex.Message}");
+            }
+        }
+
+        private bool IsEmailAddress(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            return EmailRegex.IsMatch(value);
+        }
+
         public void OpenEntity(string entityType, string entityId)
         {
             try
@@ -835,7 +1062,7 @@ namespace CRMTogether.PwaHost
             Program.Config.Save();
         }
 
-        private void LogDebug(string message)
+        public void LogDebug(string message)
         {
             try
             {
@@ -1255,5 +1482,303 @@ namespace CRMTogether.PwaHost
                 SetStatusMessage($"Error calling changeSelectedEmail: {ex.Message}");
             }
         }
+
+        #region Clipboard and Text Selection Monitoring
+
+        private void InitializeClipboardMonitoring()
+        {
+            try
+            {
+                // Remove the aggressive timer-based polling
+                // _clipboardTimer = new System.Threading.Timer(CheckClipboardChanges, null, 200, 200);
+                
+                // Set up global keyboard hook for text selection monitoring
+                _hookID = SetHook(_proc);
+                
+                // Add clipboard format listener for real-time notifications
+                AddClipboardFormatListener(this.Handle);
+                
+                LogDebug("Clipboard monitoring initialized with Windows event notifications");
+                SetStatusMessage("Clipboard monitoring enabled (event-based)");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error initializing clipboard monitoring: {ex.Message}");
+                SetStatusMessage("Clipboard monitoring failed to initialize");
+            }
+        }
+
+        private static IntPtr SetHook(LowLevelKeyboardProc proc)
+        {
+            using (var curProcess = Process.GetCurrentProcess())
+            using (var curModule = curProcess.MainModule)
+            {
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+            }
+        }
+
+        private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                
+                // Check for Ctrl+C combination
+                if (vkCode == VK_C && (GetAsyncKeyState(VK_LCONTROL) < 0 || GetAsyncKeyState(VK_RCONTROL) < 0))
+                {
+                    // Log the keyboard event
+                    if (Program.MainFormInstance != null)
+                    {
+                        Program.MainFormInstance.LogDebug("Ctrl+C detected via keyboard hook");
+                        
+                        // Check debouncing
+                        var now = DateTime.Now;
+                        if ((now - Program.MainFormInstance._lastClipboardCheck).TotalMilliseconds > CLIPBOARD_DEBOUNCE_MS)
+                        {
+                            Program.MainFormInstance._lastClipboardCheck = now;
+                            
+                            // Small delay to allow clipboard to update, then check for content
+                            Task.Delay(300).ContinueWith(_ => 
+                            {
+                                if (Program.MainFormInstance != null)
+                                {
+                                    Program.MainFormInstance.LogDebug("Checking clipboard after Ctrl+C");
+                                    Program.MainFormInstance.CheckClipboardChanges(null);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            Program.MainFormInstance.LogDebug("Ctrl+C ignored (debounced)");
+                        }
+                    }
+                }
+            }
+            
+            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+        }
+
+        private void CheckClipboardChanges(object state)
+        {
+            if (!_clipboardMonitoringEnabled) 
+            {
+                LogDebug("Clipboard monitoring is disabled, skipping check");
+                return;
+            }
+
+            try
+            {
+                // Use Invoke to ensure we're on the UI thread when accessing clipboard
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => CheckClipboardChanges(state)));
+                    return;
+                }
+
+                // Try to open clipboard with a timeout
+                bool clipboardOpened = false;
+                try
+                {
+                    // Try to open clipboard with a short timeout
+                    var startTime = DateTime.Now;
+                    while (!clipboardOpened && (DateTime.Now - startTime).TotalMilliseconds < 100)
+                    {
+                        try
+                        {
+                            Clipboard.GetText(); // This will throw if clipboard is busy
+                            clipboardOpened = true;
+                        }
+                        catch
+                        {
+                            Thread.Sleep(10); // Wait 10ms and try again
+                        }
+                    }
+                }
+                catch
+                {
+                    LogDebug("Clipboard is busy or inaccessible, skipping this check");
+                    return;
+                }
+
+                if (Clipboard.ContainsText())
+                {
+                    var currentContent = Clipboard.GetText();
+                    LogDebug($"Clipboard contains text: '{currentContent}' (length: {currentContent?.Length ?? 0})");
+                    
+                    if (!string.IsNullOrWhiteSpace(currentContent) && currentContent != _lastClipboardContent)
+                    {
+                        LogDebug($"New clipboard content detected: '{currentContent}'");
+                        _lastClipboardContent = currentContent;
+                        ProcessClipboardContent(currentContent, "clipboard");
+                    }
+                    else if (currentContent == _lastClipboardContent)
+                    {
+                        LogDebug("Clipboard content unchanged, skipping processing");
+                    }
+                }
+                else
+                {
+                    LogDebug("Clipboard does not contain text");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error checking clipboard: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        private void ProcessClipboardContent(string content, string source)
+        {
+            try
+            {
+                LogDebug($"Processing content from {source}: '{content}'");
+                
+                // Check for different types of content in order of priority
+                var emailMatches = EmailRegex.Matches(content);
+                var phoneMatches = PhoneRegex.Matches(content);
+                var websiteMatches = WebsiteRegex.Matches(content);
+                
+                LogDebug($"Found {emailMatches.Count} email, {phoneMatches.Count} phone, {websiteMatches.Count} website matches");
+                
+                string detectedValue = null;
+                string contentType = null;
+                string uri = null;
+                
+                // Priority: Email > Phone > Website > Address (newlines) > Generic Text
+                if (emailMatches.Count > 0)
+                {
+                    detectedValue = emailMatches[0].Value;
+                    contentType = "email";
+                    uri = $"crmtog://context?value={Uri.EscapeDataString(detectedValue)}&source={source}&type={contentType}";
+                }
+                else if (phoneMatches.Count > 0)
+                {
+                    detectedValue = phoneMatches[0].Value;
+                    contentType = "phone";
+                    uri = $"crmtog://phone?value={Uri.EscapeDataString(detectedValue)}&source={source}";
+                }
+                else if (websiteMatches.Count > 0)
+                {
+                    detectedValue = websiteMatches[0].Value;
+                    contentType = "website";
+                    uri = $"crmtog://website?value={Uri.EscapeDataString(detectedValue)}&source={source}";
+                }
+                else if (content.Contains("\n") || content.Contains("\r"))
+                {
+                    // Text with newlines - likely a postal address
+                    LogDebug($"Address detected: content contains newlines");
+                    detectedValue = content.Trim();
+                    contentType = "address";
+                    uri = $"crmtog://address?value={Uri.EscapeDataString(detectedValue)}&source={source}";
+                }
+                else if (!string.IsNullOrWhiteSpace(content.Trim()))
+                {
+                    // Generic text (names, company names, etc.)
+                    detectedValue = content.Trim();
+                    contentType = "text";
+                    uri = $"crmtog://text?value={Uri.EscapeDataString(detectedValue)}&source={source}";
+                }
+                
+                if (!string.IsNullOrEmpty(detectedValue))
+                {
+                    LogDebug($"{contentType} detected from {source}: {detectedValue}");
+                    LogDebug($"Dispatching URI: {uri}");
+                    UriCommandDispatcher.Dispatch(uri, this);
+                    SetStatusMessage($"{contentType} detected from {source}: {detectedValue}");
+                }
+                else
+                {
+                    LogDebug($"No recognizable content found in {source} content");
+                    SetStatusMessage($"No recognizable content found in {source} content");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing {source} content: {ex.Message}");
+                LogDebug($"Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        private void ToggleClipboardMonitoring()
+        {
+            _clipboardMonitoringEnabled = !_clipboardMonitoringEnabled;
+            var status = _clipboardMonitoringEnabled ? "enabled" : "disabled";
+            SetStatusMessage($"Clipboard monitoring {status}");
+            LogDebug($"Clipboard monitoring {status}");
+            UpdateClipboardMenuText();
+        }
+
+        private void UpdateClipboardMenuText()
+        {
+            if (_toggleClipboardMenuItem != null)
+            {
+                var status = _clipboardMonitoringEnabled ? "Disable" : "Enable";
+                _toggleClipboardMenuItem.Text = $"{status} Clipboard Monitoring";
+            }
+        }
+
+        private void TestClipboardCheck()
+        {
+            LogDebug("Manual clipboard check triggered");
+            SetStatusMessage("Testing clipboard check...");
+            CheckClipboardChanges(null);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            // Handle clipboard change notifications
+            if (m.Msg == WM_CLIPBOARDUPDATE)
+            {
+                // Debounce rapid clipboard changes
+                var now = DateTime.Now;
+                if ((now - _lastClipboardCheck).TotalMilliseconds > CLIPBOARD_DEBOUNCE_MS)
+                {
+                    _lastClipboardCheck = now;
+                    LogDebug("Clipboard change notification received (debounced)");
+                    // Small delay to allow clipboard to update
+                    Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                }
+                else
+                {
+                    LogDebug("Clipboard change notification ignored (debounced)");
+                }
+            }
+            // Monitor for text selection changes using Windows messages
+            else if (m.Msg == 0x0100) // WM_KEYDOWN
+            {
+                // Check if Ctrl+C or Ctrl+A was pressed (common copy/select operations)
+                if (m.WParam.ToInt32() == 0x43 && Control.ModifierKeys == Keys.Control) // Ctrl+C
+                {
+                    LogDebug("Ctrl+C detected in WndProc");
+                    // Small delay to allow clipboard to update
+                    Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                }
+            }
+            
+            base.WndProc(ref m);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // _clipboardTimer?.Dispose(); // No longer using timer
+                if (_hookID != IntPtr.Zero)
+                {
+                    UnhookWindowsHookEx(_hookID);
+                    _hookID = IntPtr.Zero;
+                }
+                // Remove clipboard format listener
+                try
+                {
+                    RemoveClipboardFormatListener(this.Handle);
+                }
+                catch { }
+            }
+            base.Dispose(disposing);
+        }
+
+        #endregion
     }
 }

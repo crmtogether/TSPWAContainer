@@ -85,6 +85,62 @@ namespace CRMTogether.PwaHost
                         }
                         break;
                     }
+                case "context":
+                    {
+                        form.clearParams();
+                        string value = kv["value"] ?? "";
+                        string source = kv["source"] ?? "unknown";
+                        string type = kv["type"] ?? "email";
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            form.ProcessContextValue(value, source, type);
+                        }
+                        break;
+                    }
+                case "phone":
+                    {
+                        form.clearParams();
+                        string value = kv["value"] ?? "";
+                        string source = kv["source"] ?? "unknown";
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            form.ProcessPhoneValue(value, source);
+                        }
+                        break;
+                    }
+                case "website":
+                    {
+                        form.clearParams();
+                        string value = kv["value"] ?? "";
+                        string source = kv["source"] ?? "unknown";
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            form.ProcessWebsiteValue(value, source);
+                        }
+                        break;
+                    }
+                case "text":
+                    {
+                        form.clearParams();
+                        string value = kv["value"] ?? "";
+                        string source = kv["source"] ?? "unknown";
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            form.ProcessTextValue(value, source);
+                        }
+                        break;
+                    }
+                case "address":
+                    {
+                        form.clearParams();
+                        string value = kv["value"] ?? "";
+                        string source = kv["source"] ?? "unknown";
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            form.ProcessAddressValue(value, source);
+                        }
+                        break;
+                    }
                 default:
                     if (path.Equals("call", System.StringComparison.OrdinalIgnoreCase))
                     {
