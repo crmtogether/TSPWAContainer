@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRMTogether PWA Host - Translation Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .language-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .language-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+        .translation-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .key {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .value {
+            color: #27ae60;
+            margin-left: 10px;
+        }
+        .instructions {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .instructions h3 {
+            color: #0c5460;
+            margin-top: 0;
+        }
+        .instructions ol {
+            color: #0c5460;
+        }
+        .test-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .test-section h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 CRMTogether PWA Host - Translation Framework Test</h1>
+        
+        <div class="instructions">
+            <h3>📋 How to Test Translations</h3>
+            <ol>
+                <li><strong>Change your Windows language:</strong>
+                    <ul>
+                        <li>Go to Windows Settings → Time & Language → Language</li>
+                        <li>Add a new language (German, French, or English UK)</li>
+                        <li>Set it as your display language</li>
+                        <li>Restart the CRMTogether PWA Host application</li>
+                    </ul>
+                </li>
+                <li><strong>Or test manually:</strong>
+                    <ul>
+                        <li>Copy the translation files to the application's translations folder</li>
+                        <li>Modify the TranslationManager to use a specific language</li>
+                    </ul>
+                </li>
+                <li><strong>Verify the changes:</strong>
+                    <ul>
+                        <li>Check menu items are translated</li>
+                        <li>Check status messages are translated</li>
+                        <li>Test clipboard monitoring with different content types</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="language-section">
+            <div class="language-title">🇺🇸 English (US) - en-US.json</div>
+            <div class="translation-item">
+                <span class="key">app.title:</span>
+                <span class="value">CRMTogether PWA Host</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.settings:</span>
+                <span class="value">Settings</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.clipboard:</span>
+                <span class="value">Clipboard</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">clipboard.enabled:</span>
+                <span class="value">Clipboard monitoring enabled</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">content.email_detected:</span>
+                <span class="value">Email detected from {0}: {1}</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">settings.title:</span>
+                <span class="value">Settings</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">about.title:</span>
+                <span class="value">About CRM Together ContextAI</span>
+            </div>
+        </div>
+
+        <div class="language-section">
+            <div class="language-title">🇬🇧 English (UK) - en-GB.json</div>
+            <div class="translation-item">
+                <span class="key">app.title:</span>
+                <span class="value">CRMTogether PWA Host</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.settings:</span>
+                <span class="value">Settings</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.clipboard:</span>
+                <span class="value">Clipboard</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">clipboard.enabled:</span>
+                <span class="value">Clipboard monitoring enabled</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">content.phone_detected:</span>
+                <span class="value">Telephone number detected from {0}: {1}</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">settings.title:</span>
+                <span class="value">Settings</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">about.title:</span>
+                <span class="value">About CRM Together ContextAI</span>
+            </div>
+        </div>
+
+        <div class="language-section">
+            <div class="language-title">🇩🇪 German - de-DE.json</div>
+            <div class="translation-item">
+                <span class="key">app.title:</span>
+                <span class="value">CRMTogether PWA Host</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.settings:</span>
+                <span class="value">Einstellungen</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.clipboard:</span>
+                <span class="value">Zwischenablage</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">clipboard.enabled:</span>
+                <span class="value">Zwischenablage-Überwachung aktiviert</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">content.email_detected:</span>
+                <span class="value">E-Mail von {0} erkannt: {1}</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">settings.title:</span>
+                <span class="value">Einstellungen</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">about.title:</span>
+                <span class="value">Über CRM Together ContextAI</span>
+            </div>
+        </div>
+
+        <div class="language-section">
+            <div class="language-title">🇫🇷 French - fr-FR.json</div>
+            <div class="translation-item">
+                <span class="key">app.title:</span>
+                <span class="value">CRMTogether PWA Host</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.settings:</span>
+                <span class="value">Paramètres</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">menu.clipboard:</span>
+                <span class="value">Presse-papiers</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">clipboard.enabled:</span>
+                <span class="value">Surveillance du presse-papiers activée</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">content.email_detected:</span>
+                <span class="value">E-mail détecté depuis {0} : {1}</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">settings.title:</span>
+                <span class="value">Paramètres</span>
+            </div>
+            <div class="translation-item">
+                <span class="key">about.title:</span>
+                <span class="value">À propos de CRM Together ContextAI</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Translation Features</h3>
+            <ul>
+                <li><strong>Automatic Language Detection:</strong> Detects Windows system language</li>
+                <li><strong>Fallback Support:</strong> Falls back to English if translation not found</li>
+                <li><strong>Parameter Support:</strong> Supports string formatting with parameters</li>
+                <li><strong>Real-time Updates:</strong> All UI elements update when language changes</li>
+                <li><strong>Comprehensive Coverage:</strong> Menu items, status messages, error messages</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Technical Implementation</h3>
+            <ul>
+                <li><strong>TranslationManager Class:</strong> Centralized translation management</li>
+                <li><strong>JSON Language Files:</strong> Easy to edit and maintain</li>
+                <li><strong>Language Mapping:</strong> Supports regional variants (en-US, en-GB, de-DE, etc.)</li>
+                <li><strong>Error Handling:</strong> Graceful fallback to English on errors</li>
+                <li><strong>Performance:</strong> Compiled regex patterns and efficient lookups</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

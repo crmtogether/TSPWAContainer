@@ -14,10 +14,11 @@ namespace CRMTogether.PwaHost
 
         public SettingsForm()
         {
-            Text = "Settings";
-            Width = 640;
-            Height = 480;
+            Text = TranslationManager.GetString("settings.title");
+            Width = 700;
+            Height = 520;
             StartPosition = FormStartPosition.CenterParent;
+            Padding = new Padding(15);
             
             // Set the form icon
             try
@@ -30,40 +31,111 @@ namespace CRMTogether.PwaHost
                 System.Diagnostics.Debug.WriteLine($"Error loading icon: {ex.Message}");
             }
 
+            // Create main container with proper spacing
+            var mainContainer = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 1,
+                Padding = new Padding(0)
+            };
+
+            // Configure rows
+            mainContainer.RowStyles.Add(new RowStyle(SizeType.Absolute, 60)); // Startup URL section
+            mainContainer.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Folders label
+            mainContainer.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // List box
+            mainContainer.RowStyles.Add(new RowStyle(SizeType.Absolute, 60)); // Buttons
+
             // Startup URL section
+            var startupUrlPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(0, 0, 0, 10)
+            };
+
             _lblStartupUrl = new Label { 
-                Text = "Startup URL (URL to load when the app starts):", 
+                Text = TranslationManager.GetString("settings.startup_url_label"), 
                 Dock = DockStyle.Top, 
-                Height = 20, 
-                Padding = new Padding(10, 10, 10, 0) 
+                Height = 20,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(51, 51, 51)
             };
             
             _txtStartupUrl = new TextBox { 
                 Dock = DockStyle.Top, 
-                Height = 25, 
-                Margin = new Padding(10, 0, 10, 10)
+                Height = 25,
+                Font = new Font("Segoe UI", 9F),
+                Margin = new Padding(0, 5, 0, 0)
             };
 
+            startupUrlPanel.Controls.Add(_txtStartupUrl);
+            startupUrlPanel.Controls.Add(_lblStartupUrl);
+
+            // Folders label
             _lbl = new Label { 
-                Text = "Folders to monitor for new files (.eml handled specially):", 
-                Dock = DockStyle.Top, 
-                Height = 30, 
-                Padding = new Padding(10, 10, 10, 0) 
+                Text = TranslationManager.GetString("settings.folders_label"), 
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(51, 51, 51),
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(0, 10, 0, 10)
             };
 
-            _list = new ListBox { Dock = DockStyle.Fill };
-            _btnAdd = new Button { Text = "Add Folder...", Width = 110 };
-            _btnRemove = new Button { Text = "Remove Selected", Width = 130 };
-            _btnClose = new Button { Text = "Close", Width = 90 };
+            // List box with padding
+            var listPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(0, 0, 0, 10)
+            };
 
-            var panel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
-            panel.Controls.AddRange(new Control[] { _btnClose, _btnRemove, _btnAdd });
+            _list = new ListBox { 
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9F),
+                BorderStyle = BorderStyle.FixedSingle
+            };
 
-            Controls.Add(_list);
-            Controls.Add(panel);
-            Controls.Add(_lbl);
-            Controls.Add(_txtStartupUrl);
-            Controls.Add(_lblStartupUrl);
+            listPanel.Controls.Add(_list);
+
+            // Buttons panel
+            var buttonPanel = new FlowLayoutPanel 
+            { 
+                Dock = DockStyle.Fill, 
+                FlowDirection = FlowDirection.RightToLeft, 
+                Padding = new Padding(0, 10, 0, 0),
+                WrapContents = false
+            };
+
+            _btnAdd = new Button { 
+                Text = TranslationManager.GetString("settings.add_folder"), 
+                Width = 120,
+                Height = 35,
+                Font = new Font("Segoe UI", 9F),
+                Margin = new Padding(5, 0, 0, 0)
+            };
+            _btnRemove = new Button { 
+                Text = TranslationManager.GetString("settings.remove_selected"), 
+                Width = 140,
+                Height = 35,
+                Font = new Font("Segoe UI", 9F),
+                Margin = new Padding(5, 0, 0, 0)
+            };
+            _btnClose = new Button { 
+                Text = TranslationManager.GetString("settings.close"), 
+                Width = 100,
+                Height = 35,
+                Font = new Font("Segoe UI", 9F),
+                Margin = new Padding(5, 0, 0, 0)
+            };
+
+            buttonPanel.Controls.AddRange(new Control[] { _btnClose, _btnRemove, _btnAdd });
+
+            // Add all panels to main container
+            mainContainer.Controls.Add(startupUrlPanel, 0, 0);
+            mainContainer.Controls.Add(_lbl, 0, 1);
+            mainContainer.Controls.Add(listPanel, 0, 2);
+            mainContainer.Controls.Add(buttonPanel, 0, 3);
+
+            Controls.Add(mainContainer);
 
             Load += (s,e) => {
                 _list.Items.Clear();
@@ -74,7 +146,7 @@ namespace CRMTogether.PwaHost
             _btnAdd.Click += (s,e) => {
                 using (var dlg = new FolderBrowserDialog())
                 {
-                    dlg.Description = "Select a folder to monitor";
+                    dlg.Description = TranslationManager.GetString("settings.select_folder_description");
                     if (dlg.ShowDialog(this) == DialogResult.OK)
                     {
                         if (!_list.Items.Cast<string>().Any(x => string.Equals(x, dlg.SelectedPath, System.StringComparison.OrdinalIgnoreCase)))
@@ -107,6 +179,7 @@ namespace CRMTogether.PwaHost
             }
             
             Program.Config.Save();
+            Close();
         }
     }
 }

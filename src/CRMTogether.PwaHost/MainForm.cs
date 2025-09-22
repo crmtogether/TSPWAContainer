@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
@@ -122,7 +123,10 @@ namespace CRMTogether.PwaHost
 
         public MainForm()
         {
-            Text = "CRMTogether PWA Host";
+            // Initialize translation framework first
+            TranslationManager.Initialize();
+            
+            Text = TranslationManager.GetString("app.title");
             Width = 420;
             Height = 0;
             StartPosition = FormStartPosition.Manual;
@@ -197,7 +201,7 @@ namespace CRMTogether.PwaHost
 
             // Create status strip
             _statusStrip = new StatusStrip();
-            _statusLabel = new ToolStripStatusLabel("Ready");
+            _statusLabel = new ToolStripStatusLabel(TranslationManager.GetString("app.ready"));
             _statusStrip.Items.Add(_statusLabel);
             
             // Add panels to the table layout
@@ -218,8 +222,8 @@ namespace CRMTogether.PwaHost
         private MenuStrip BuildMenu()
         {
             var ms = new MenuStrip();
-            var settings = new ToolStripMenuItem("Settings");
-            var mFolders = new ToolStripMenuItem("Monitored Folders...");
+            var settings = new ToolStripMenuItem(TranslationManager.GetString("menu.settings"));
+            var mFolders = new ToolStripMenuItem(TranslationManager.GetString("menu.monitored_folders"));
             mFolders.Click += (s,e) => {
                 using (var dlg = new SettingsForm())
                 {
@@ -227,7 +231,7 @@ namespace CRMTogether.PwaHost
                     StartWatchers();
                 }
             };
-            var mAbout = new ToolStripMenuItem("About...");
+            var mAbout = new ToolStripMenuItem(TranslationManager.GetString("menu.about"));
             mAbout.Click += (s,e) => { using (var a = new AboutForm()) a.ShowDialog(this); };
 
             settings.DropDownItems.Add(mFolders);
@@ -236,21 +240,21 @@ namespace CRMTogether.PwaHost
             ms.Items.Add(settings);
 
             // Add Test menu
-            var test = new ToolStripMenuItem("Test");
-            var mTestEmail = new ToolStripMenuItem("Test changeSelectedEmail");
+            var test = new ToolStripMenuItem(TranslationManager.GetString("menu.test"));
+            var mTestEmail = new ToolStripMenuItem(TranslationManager.GetString("menu.test_email"));
             mTestEmail.Click += async (s, e) => await TestChangeSelectedEmail();
             test.DropDownItems.Add(mTestEmail);
             ms.Items.Add(test);
 
             // Add Clipboard menu
-            var clipboard = new ToolStripMenuItem("Clipboard");
-            var mToggleClipboard = new ToolStripMenuItem("Toggle Clipboard Monitoring");
+            var clipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.clipboard"));
+            var mToggleClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.toggle_clipboard"));
             mToggleClipboard.Click += (s, e) => ToggleClipboardMonitoring();
             clipboard.DropDownItems.Add(mToggleClipboard);
             
-            var mTestClipboard = new ToolStripMenuItem("Test Clipboard Check");
+            var mTestClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.test_clipboard"));
             mTestClipboard.Click += (s, e) => {
-                LogDebug("Test Clipboard Check menu item clicked");
+                LogDebug(TranslationManager.GetString("debug.menu_clicked"));
                 TestClipboardCheck();
             };
             clipboard.DropDownItems.Add(mTestClipboard);
@@ -713,7 +717,7 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug($"ProcessContextValue called with value: {value}, source: {source}, type: {type}");
-                SetStatusMessage($"Processing {type} value from {source}: {value}");
+                SetStatusMessage(TranslationManager.GetString("processing.email", source, value));
                 
                 // Store the value as a context parameter
                 addParam("emailAddress", value);
@@ -726,7 +730,7 @@ namespace CRMTogether.PwaHost
             catch (Exception ex)
             {
                 LogDebug($"Error processing context value: {ex.Message}");
-                SetStatusMessage($"Error processing context value: {ex.Message}");
+                SetStatusMessage(TranslationManager.GetString("error.processing", "context", ex.Message));
             }
         }
 
@@ -735,7 +739,7 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug($"ProcessPhoneValue called with value: {value}, source: {source}");
-                SetStatusMessage($"Processing phone number from {source}: {value}");
+                SetStatusMessage(TranslationManager.GetString("processing.phone", source, value));
                 
                 // Store the phone number as a context parameter
                 addParam("phoneNumber", value);
@@ -748,7 +752,7 @@ namespace CRMTogether.PwaHost
             catch (Exception ex)
             {
                 LogDebug($"Error processing phone value: {ex.Message}");
-                SetStatusMessage($"Error processing phone value: {ex.Message}");
+                SetStatusMessage(TranslationManager.GetString("error.phone_processing", ex.Message));
             }
         }
 
@@ -757,7 +761,7 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug($"ProcessWebsiteValue called with value: {value}, source: {source}");
-                SetStatusMessage($"Processing website from {source}: {value}");
+                SetStatusMessage(TranslationManager.GetString("processing.website", source, value));
                 
                 // Store the website as a context parameter
                 addParam("website", value);
@@ -770,7 +774,7 @@ namespace CRMTogether.PwaHost
             catch (Exception ex)
             {
                 LogDebug($"Error processing website value: {ex.Message}");
-                SetStatusMessage($"Error processing website value: {ex.Message}");
+                SetStatusMessage(TranslationManager.GetString("error.website_processing", ex.Message));
             }
         }
 
@@ -779,20 +783,174 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug($"ProcessTextValue called with value: {value}, source: {source}");
-                SetStatusMessage($"Processing text from {source}: {value}");
                 
-                // Store the text as a context parameter
-                addParam("textValue", value);
-                addParam("source", source);
-                addParam("contentType", "text");
-                
-                // Create a text entity (could be name, company, etc.)
-                OpenEntity("text", value);
+                // Check if this is multiline text that might contain contact information
+                if (value.Contains("\n") || value.Contains("\r"))
+                {
+                    LogDebug("Multiline text detected, analyzing for contact information");
+                    ProcessMultilineContactInfo(value, source);
+                }
+                else
+                {
+                    // Single line text - treat as regular text
+                    SetStatusMessage(TranslationManager.GetString("processing.text", source, value));
+                    
+                    // Store the text as a context parameter
+                    addParam("textValue", value);
+                    addParam("source", source);
+                    addParam("contentType", "text");
+                    
+                    // Create a text entity (could be name, company, etc.)
+                    OpenEntity("text", value);
+                }
             }
             catch (Exception ex)
             {
                 LogDebug($"Error processing text value: {ex.Message}");
-                SetStatusMessage($"Error processing text value: {ex.Message}");
+                SetStatusMessage(TranslationManager.GetString("error.text_processing", ex.Message));
+            }
+        }
+
+        private void ProcessMultilineContactInfo(string value, string source)
+        {
+            try
+            {
+                LogDebug("Processing multiline text for contact information");
+                
+                // Extract different types of contact information
+                var emailMatches = EmailRegex.Matches(value);
+                var phoneMatches = PhoneRegex.Matches(value);
+                var websiteMatches = WebsiteRegex.Matches(value);
+                
+                LogDebug($"Found {emailMatches.Count} emails, {phoneMatches.Count} phones, {websiteMatches.Count} websites in multiline text");
+                
+                // Create a comprehensive contact object
+                var contactInfo = new
+                {
+                    originalText = value.Trim(),
+                    companyName = ExtractCompanyName(value),
+                    emails = emailMatches.Cast<Match>().Select(m => m.Value).ToArray(),
+                    phoneNumbers = phoneMatches.Cast<Match>().Select(m => m.Value).ToArray(),
+                    websites = websiteMatches.Cast<Match>().Select(m => m.Value).ToArray(),
+                    address = ExtractAddress(value),
+                    source = source,
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    hasEmail = emailMatches.Count > 0,
+                    hasPhone = phoneMatches.Count > 0,
+                    hasWebsite = websiteMatches.Count > 0,
+                    hasAddress = !string.IsNullOrWhiteSpace(ExtractAddress(value))
+                };
+                
+                // Store all the extracted information
+                addParam("contactInfo", Newtonsoft.Json.JsonConvert.SerializeObject(contactInfo));
+                addParam("companyName", contactInfo.companyName);
+                addParam("emails", string.Join(";", contactInfo.emails));
+                addParam("phoneNumbers", string.Join(";", contactInfo.phoneNumbers));
+                addParam("websites", string.Join(";", contactInfo.websites));
+                addParam("address", contactInfo.address);
+                addParam("source", source);
+                addParam("contentType", "contact");
+                
+                // Create status message based on what was found
+                var foundItems = new List<string>();
+                if (contactInfo.hasEmail) foundItems.Add($"{contactInfo.emails.Length} email(s)");
+                if (contactInfo.hasPhone) foundItems.Add($"{contactInfo.phoneNumbers.Length} phone(s)");
+                if (contactInfo.hasWebsite) foundItems.Add($"{contactInfo.websites.Length} website(s)");
+                if (contactInfo.hasAddress) foundItems.Add("address");
+                
+                var statusMessage = foundItems.Count > 0 
+                    ? $"Contact info detected: {string.Join(", ", foundItems)}"
+                    : "Multiline text processed (no contact info detected)";
+                
+                SetStatusMessage(statusMessage);
+                LogDebug($"Contact processing result: {statusMessage}");
+                
+                // Create a contact entity
+                OpenEntity("contact", contactInfo.companyName ?? "Unknown Company");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error processing multiline contact info: {ex.Message}");
+                SetStatusMessage($"Error processing contact information: {ex.Message}");
+            }
+        }
+
+        private string ExtractCompanyName(string text)
+        {
+            try
+            {
+                // Get the first non-empty line, which is often the company name
+                var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length > 0)
+                {
+                    var firstLine = lines[0].Trim();
+                    // If the first line looks like a company name (not an email, phone, or website)
+                    if (!EmailRegex.IsMatch(firstLine) && 
+                        !PhoneRegex.IsMatch(firstLine) && 
+                        !WebsiteRegex.IsMatch(firstLine) &&
+                        !firstLine.Contains("@") &&
+                        firstLine.Length > 2)
+                    {
+                        return firstLine;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error extracting company name: {ex.Message}");
+            }
+            return null;
+        }
+
+        private string ExtractAddress(string text)
+        {
+            try
+            {
+                var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var addressLines = new List<string>();
+                
+                foreach (var line in lines)
+                {
+                    var trimmedLine = line.Trim();
+                    
+                    // Skip if it's an email, phone, or website
+                    if (EmailRegex.IsMatch(trimmedLine) || 
+                        PhoneRegex.IsMatch(trimmedLine) || 
+                        WebsiteRegex.IsMatch(trimmedLine))
+                    {
+                        continue;
+                    }
+                    
+                    // Skip if it's likely a company name (first line)
+                    if (addressLines.Count == 0 && lines.Length > 2)
+                    {
+                        continue;
+                    }
+                    
+                    // Look for address-like patterns (contains postal codes, street indicators, etc.)
+                    if (trimmedLine.Length > 5 && 
+                        (trimmedLine.Contains(",") || 
+                         trimmedLine.Contains("Street") || 
+                         trimmedLine.Contains("Road") || 
+                         trimmedLine.Contains("Avenue") || 
+                         trimmedLine.Contains("Lane") || 
+                         trimmedLine.Contains("Drive") || 
+                         trimmedLine.Contains("UK") || 
+                         trimmedLine.Contains("USA") || 
+                         trimmedLine.Contains("US") ||
+                         System.Text.RegularExpressions.Regex.IsMatch(trimmedLine, @"\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b") || // UK postal code
+                         System.Text.RegularExpressions.Regex.IsMatch(trimmedLine, @"\b\d{5}(-\d{4})?\b"))) // US ZIP code
+                    {
+                        addressLines.Add(trimmedLine);
+                    }
+                }
+                
+                return addressLines.Count > 0 ? string.Join(", ", addressLines) : null;
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error extracting address: {ex.Message}");
+                return null;
             }
         }
 
@@ -802,7 +960,7 @@ namespace CRMTogether.PwaHost
             {
                 LogDebug($"ProcessAddressValue called with value: '{value}', source: {source}");
                 LogDebug($"About to call SetStatusMessage for address processing");
-                SetStatusMessage($"Processing postal address from {source}: {value}");
+                SetStatusMessage(TranslationManager.GetString("processing.address", source, value));
                 LogDebug($"SetStatusMessage called successfully for address");
                 
                 // Store the address as a context parameter
@@ -818,7 +976,7 @@ namespace CRMTogether.PwaHost
             {
                 LogDebug($"Error processing address value: {ex.Message}");
                 LogDebug($"Stack trace: {ex.StackTrace}");
-                SetStatusMessage($"Error processing address value: {ex.Message}");
+                SetStatusMessage(TranslationManager.GetString("error.address_processing", ex.Message));
             }
         }
 
@@ -1196,7 +1354,7 @@ namespace CRMTogether.PwaHost
                 
                 if (result != null)
                 {
-                    SetStatusMessage($"EML processed successfully! Subject: {info.Subject}, From: {info.From}");
+                    SetStatusMessage(TranslationManager.GetString("file.eml_processed", info.Subject, info.From));
                 }
                 else
                 {
@@ -1246,22 +1404,38 @@ namespace CRMTogether.PwaHost
         {
             try
             {
-                SetStatusMessage($"Processing phone file: {Path.GetFileName(filePath)}");
+                SetStatusMessage(TranslationManager.GetString("file.processing", "phone", Path.GetFileName(filePath)));
                 // Read the phone number from the file
                 var phoneNumber = File.ReadAllText(filePath);
                 phoneNumber = phoneNumber.Trim(); // Remove any whitespace
                 
                 if (string.IsNullOrWhiteSpace(phoneNumber))
                 {
-                    SetStatusMessage("Phone file is empty or contains no phone number");
+                    SetStatusMessage(TranslationManager.GetString("file.empty", "Phone", "phone number"));
                     return;
                 }
                 
-                // Call the Vue.js function
-                var jsCode = $"vueAppInstance.$phonebox.changeSelectedPhone(\"{phoneNumber}\");";
-                var result = await _webView.CoreWebView2.ExecuteScriptAsync(jsCode);
+                // Create a phone object similar to the email object
+                var phoneObject = new
+                {
+                    phoneNumber = phoneNumber,
+                    source = "file",
+                    fileName = Path.GetFileName(filePath),
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
                 
-                SetStatusMessage($"Phone file processed successfully! Phone Number: {phoneNumber}");
+                // Call the browser function using the same method as EML files
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(phoneObject);
+                var result = await CallBrowserFunctionAsync("changeSelectedPhone", json);
+                
+                if (result != null)
+                {
+                    SetStatusMessage(TranslationManager.GetString("file.phone_processed", phoneNumber));
+                }
+                else
+                {
+                    SetStatusMessage($"Phone file processed but changeSelectedPhone function not found. Phone: {phoneNumber}");
+                }
             }
             catch (Exception ex)
             {
@@ -1502,12 +1676,12 @@ namespace CRMTogether.PwaHost
                 AddClipboardFormatListener(this.Handle);
                 
                 LogDebug("Clipboard monitoring initialized with Windows event notifications");
-                SetStatusMessage("Clipboard monitoring enabled (event-based)");
+                SetStatusMessage(TranslationManager.GetString("clipboard.event_based"));
             }
             catch (Exception ex)
             {
                 LogDebug($"Error initializing clipboard monitoring: {ex.Message}");
-                SetStatusMessage("Clipboard monitoring failed to initialize");
+                SetStatusMessage(TranslationManager.GetString("status.clipboard_init_failed"));
             }
         }
 
@@ -1636,6 +1810,8 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug($"Processing content from {source}: '{content}'");
+                LogDebug($"Content length: {content?.Length ?? 0}");
+                LogDebug($"Content contains newlines: {content?.Contains("\n") ?? false} or {content?.Contains("\r") ?? false}");
                 
                 // Check for different types of content in order of priority
                 var emailMatches = EmailRegex.Matches(content);
@@ -1643,6 +1819,20 @@ namespace CRMTogether.PwaHost
                 var websiteMatches = WebsiteRegex.Matches(content);
                 
                 LogDebug($"Found {emailMatches.Count} email, {phoneMatches.Count} phone, {websiteMatches.Count} website matches");
+                
+                // Debug: Show what each regex found
+                if (emailMatches.Count > 0)
+                {
+                    LogDebug($"Email matches: {string.Join(", ", emailMatches.Cast<Match>().Select(m => m.Value))}");
+                }
+                if (phoneMatches.Count > 0)
+                {
+                    LogDebug($"Phone matches: {string.Join(", ", phoneMatches.Cast<Match>().Select(m => m.Value))}");
+                }
+                if (websiteMatches.Count > 0)
+                {
+                    LogDebug($"Website matches: {string.Join(", ", websiteMatches.Cast<Match>().Select(m => m.Value))}");
+                }
                 
                 string detectedValue = null;
                 string contentType = null;
@@ -1688,12 +1878,12 @@ namespace CRMTogether.PwaHost
                     LogDebug($"{contentType} detected from {source}: {detectedValue}");
                     LogDebug($"Dispatching URI: {uri}");
                     UriCommandDispatcher.Dispatch(uri, this);
-                    SetStatusMessage($"{contentType} detected from {source}: {detectedValue}");
+                    SetStatusMessage(TranslationManager.GetString($"content.{contentType}_detected", source, detectedValue));
                 }
                 else
                 {
                     LogDebug($"No recognizable content found in {source} content");
-                    SetStatusMessage($"No recognizable content found in {source} content");
+                    SetStatusMessage(TranslationManager.GetString("content.no_recognizable", source));
                 }
             }
             catch (Exception ex)
@@ -1706,8 +1896,10 @@ namespace CRMTogether.PwaHost
         private void ToggleClipboardMonitoring()
         {
             _clipboardMonitoringEnabled = !_clipboardMonitoringEnabled;
-            var status = _clipboardMonitoringEnabled ? "enabled" : "disabled";
-            SetStatusMessage($"Clipboard monitoring {status}");
+            var status = _clipboardMonitoringEnabled ? 
+                TranslationManager.GetString("clipboard.enabled") : 
+                TranslationManager.GetString("clipboard.disabled");
+            SetStatusMessage(status);
             LogDebug($"Clipboard monitoring {status}");
             UpdateClipboardMenuText();
         }
@@ -1716,8 +1908,10 @@ namespace CRMTogether.PwaHost
         {
             if (_toggleClipboardMenuItem != null)
             {
-                var status = _clipboardMonitoringEnabled ? "Disable" : "Enable";
-                _toggleClipboardMenuItem.Text = $"{status} Clipboard Monitoring";
+                var status = _clipboardMonitoringEnabled ? 
+                    TranslationManager.GetString("clipboard.disabled") : 
+                    TranslationManager.GetString("clipboard.enabled");
+                _toggleClipboardMenuItem.Text = status;
             }
         }
 
@@ -1726,7 +1920,7 @@ namespace CRMTogether.PwaHost
             try
             {
                 LogDebug("Manual clipboard check triggered");
-                SetStatusMessage("Testing clipboard check...");
+                SetStatusMessage(TranslationManager.GetString("clipboard.testing"));
                 LogDebug($"Clipboard monitoring enabled: {_clipboardMonitoringEnabled}");
                 
                 // Check if clipboard has any content at all

@@ -10,7 +10,7 @@ namespace CRMTogether.PwaHost
     {
         public AboutForm()
         {
-            Text = "About CRMTogether PWA Host";
+            Text = TranslationManager.GetString("about.title");
             StartPosition = FormStartPosition.CenterParent;
             Width = 520;
             Height = 280;
@@ -40,17 +40,15 @@ namespace CRMTogether.PwaHost
                 Dock = DockStyle.Fill,
                 Padding = new Padding(16),
                 AutoSize = false,
-                Text = 
-$@"CRMTogether PWA Host
-
-Version: {ver}
-Assembly: {name.Name}
-
-WebView2 Runtime: {webviewVer}
-
-© CRMTogether"
+                Font = new Font("Segoe UI", 9F),
+                Text = TranslationManager.GetString("about.content", ver, name.Name, webviewVer)
             };
-            var ok = new Button { Text = "OK", Dock = DockStyle.Bottom, Height = 36 };
+            var ok = new Button { 
+                Text = TranslationManager.GetString("about.ok"), 
+                Dock = DockStyle.Bottom, 
+                Height = 36,
+                Font = new Font("Segoe UI", 9F)
+            };
             ok.Click += (s,e) => Close();
             Controls.Add(lbl);
             Controls.Add(ok);

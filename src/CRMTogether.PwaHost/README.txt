@@ -1,4 +1,4 @@
-CRMTogether.PwaHost — SINGLE INSTANCE + WM_COPYDATA forwarder + About box + menu layout fix + File Processing System + Intelligent Clipboard Monitoring
+CRMTogether.PwaHost — SINGLE INSTANCE + WM_COPYDATA forwarder + About box + menu layout fix + File Processing System + Intelligent Clipboard Monitoring + Multi-Language Translation Framework
 
 Fixes:
   - MenuStrip is now set as MainMenuStrip and docked before WebView2; layout re-applied so it no longer overlaps/cuts off the WebView.
@@ -12,6 +12,9 @@ Added:
   - Real-time clipboard change notifications using Windows events (no polling)
   - Global keyboard hook for Ctrl+C detection across all applications
   - Debounced event processing to prevent excessive CPU usage
+  - Multi-language translation framework with automatic Windows language detection
+  - Support for English (US/UK), German, and French translations
+  - Comprehensive UI translation including menus, status messages, and error messages
 
 Compat tweaks:
   - Only uses Headers.SetHeader(...) (avoid AppendHeader for older WebView2).
@@ -205,3 +208,61 @@ Performance:
 - Minimal CPU usage
 - Debounced to prevent excessive processing
 - Only processes when clipboard actually changes
+
+TRANSLATION FRAMEWORK SYSTEM
+
+Overview:
+The application now includes a comprehensive multi-language translation framework that automatically detects the Windows system language and displays all UI text in the appropriate language.
+
+Supported Languages:
+- English (US) - en-US
+- English (UK) - en-GB (with British spellings like "telephone" instead of "phone")
+- German - de-DE (Deutsch)
+- French - fr-FR (Français)
+
+Automatic Language Detection:
+- Detects Windows system language on startup
+- Maps regional variants to supported languages (e.g., en-AU → en-US, de-AT → de-DE)
+- Falls back to English (US) if language not supported
+- Supports language switching at runtime
+
+Translation Coverage:
+- Application title and window text
+- All menu items and submenus
+- Status bar messages
+- Error messages and notifications
+- Clipboard monitoring messages
+- Content detection messages
+- File processing messages
+- Debug output (optional)
+
+Language Files:
+- Located in: bin/Debug/net481/translations/
+- Format: JSON files (en-US.json, en-GB.json, de-DE.json, fr-FR.json)
+- Easy to edit and maintain
+- Supports parameterized strings (e.g., "Email detected from {0}: {1}")
+
+Technical Implementation:
+- TranslationManager class handles all translation logic
+- Efficient dictionary-based lookups
+- String formatting with parameter support
+- Error handling with graceful fallbacks
+- Thread-safe operations
+
+Usage:
+- No user configuration required - works automatically
+- Language detection happens on application startup
+- All UI elements update immediately when language changes
+- Translation files are automatically copied to output directory
+
+Adding New Languages:
+1. Create new JSON file in translations/ folder (e.g., es-ES.json for Spanish)
+2. Add language mapping to TranslationManager._languageMappings
+3. Translate all key-value pairs from en-US.json
+4. Rebuild application
+
+Testing:
+- Use test-translations.html to see all translations
+- Change Windows language to test automatic detection
+- Verify all UI elements are properly translated
+- Test clipboard monitoring in different languages
