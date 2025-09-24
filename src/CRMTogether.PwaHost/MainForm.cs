@@ -126,9 +126,15 @@ namespace CRMTogether.PwaHost
             // Initialize translation framework first
             TranslationManager.Initialize();
             
+            // Disable clipboard monitoring if clipboard menu is hidden
+            if (!Program.Config.ShowClipboardMenu)
+            {
+                _clipboardMonitoringEnabled = false;
+            }
+            
             Text = TranslationManager.GetString("app.title");
             Width = 420;
-            Height = 0;
+            Height = 600; // Set a reasonable initial height instead of 0
             StartPosition = FormStartPosition.Manual;
             AllowDrop = true;
             
@@ -163,8 +169,15 @@ namespace CRMTogether.PwaHost
             _menu = BuildMenu();
             this.MainMenuStrip = _menu;
 
-            // Initialize clipboard monitoring
-            InitializeClipboardMonitoring();
+            // Initialize clipboard monitoring only if enabled
+            if (Program.Config.ShowClipboardMenu)
+            {
+                InitializeClipboardMonitoring();
+            }
+            else
+            {
+                LogDebug("Clipboard monitoring disabled for this environment");
+            }
 
             // Create a table layout panel to properly manage the layout
             var tableLayout = new TableLayoutPanel
@@ -175,10 +188,10 @@ namespace CRMTogether.PwaHost
                 Padding = new Padding(0)
             };
 
-            // Configure the rows
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); // Menu row
+            // Configure the rows - use fixed sizes for menu and status to prevent excessive sizing
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); // Menu row - fixed at 30px
             tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // WebView row
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); // Status row
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); // Status row - fixed at 22px
 
             // Create a panel for the menu
             var menuPanel = new Panel
@@ -189,11 +202,11 @@ namespace CRMTogether.PwaHost
             _menu.Dock = DockStyle.Fill;
             menuPanel.Controls.Add(_menu);
 
-            // Create a panel with padding for the WebView
+            // Create a panel with minimal padding for the WebView
             var webViewPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(5) // 5 pixels padding on all sides
+                Padding = new Padding(1) // Minimal padding to prevent sizing issues
             };
 
             _webView = new WebView2Wrapper { Dock = DockStyle.Fill };
@@ -214,56 +227,142 @@ namespace CRMTogether.PwaHost
 
             this.ResumeLayout(performLayout: true);
 
-            Load += async (_, __) => await InitializeAsync();
+            // Handle form resize to ensure proper WebView sizing
+            this.Resize += OnFormResize;
+            this.Load += async (_, __) => await InitializeAsync();
             DragEnter += OnDragEnter;
             DragDrop += OnDragDrop;
+        }
+
+        private void OnFormResize(object sender, EventArgs e)
+        {
+            try
+            {
+                // Force layout update to ensure WebView is properly sized
+                if (_webView != null && _webView.IsHandleCreated)
+                {
+                    _webView.Invalidate();
+                    _webView.Update();
+                }
+                
+                // Log resize for debugging
+                LogDebug($"Form resized to: {this.Size}");
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in OnFormResize: {ex.Message}");
+            }
+        }
+
+        private void EnsureWebViewProperSize()
+        {
+            try
+            {
+                if (_webView != null && _webView.IsHandleCreated)
+                {
+                    // Force a layout update
+                    this.PerformLayout();
+                    
+                    // Ensure WebView fills its container properly
+                    _webView.Dock = DockStyle.Fill;
+                    _webView.Invalidate();
+                    _webView.Update();
+                    
+                    LogDebug($"WebView size ensured: {_webView.Size}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in EnsureWebViewProperSize: {ex.Message}");
+            }
+        }
+
+        private void LogMenuDimensions()
+        {
+            try
+            {
+                LogDebug($"Form size: {this.Size}");
+                LogDebug($"Menu size: {_menu?.Size}");
+                LogDebug($"Menu height: {_menu?.Height}");
+                LogDebug($"Status strip size: {_statusStrip?.Size}");
+                LogDebug($"Status strip height: {_statusStrip?.Height}");
+                
+                // Log TableLayoutPanel row heights
+                if (Controls.Count > 0 && Controls[0] is TableLayoutPanel tableLayout)
+                {
+                    for (int i = 0; i < tableLayout.RowCount; i++)
+                    {
+                        var rowStyle = tableLayout.RowStyles[i];
+                        LogDebug($"Row {i}: SizeType={rowStyle.SizeType}, Height={rowStyle.Height}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error in LogMenuDimensions: {ex.Message}");
+            }
         }
 
         private MenuStrip BuildMenu()
         {
             var ms = new MenuStrip();
             var settings = new ToolStripMenuItem(TranslationManager.GetString("menu.settings"));
-            var mFolders = new ToolStripMenuItem(TranslationManager.GetString("menu.monitored_folders"));
-            mFolders.Click += (s,e) => {
-                using (var dlg = new SettingsForm())
-                {
-                    dlg.ShowDialog(this);
-                    StartWatchers();
-                }
-            };
             var mAbout = new ToolStripMenuItem(TranslationManager.GetString("menu.about"));
             mAbout.Click += (s,e) => { using (var a = new AboutForm()) a.ShowDialog(this); };
 
-            settings.DropDownItems.Add(mFolders);
-            settings.DropDownItems.Add(new ToolStripSeparator());
+            // Add Monitored folders menu item only if folder monitoring is enabled
+            if (Program.Config.EnableFolderMonitoring)
+            {
+                var mFolders = new ToolStripMenuItem(TranslationManager.GetString("menu.monitored_folders"));
+                mFolders.Click += (s,e) => {
+                    using (var dlg = new SettingsForm())
+                    {
+                        dlg.ShowDialog(this);
+                        StartWatchers();
+                    }
+                };
+                settings.DropDownItems.Add(mFolders);
+                settings.DropDownItems.Add(new ToolStripSeparator());
+            }
+            
             settings.DropDownItems.Add(mAbout);
             ms.Items.Add(settings);
 
-            // Add Test menu
-            var test = new ToolStripMenuItem(TranslationManager.GetString("menu.test"));
-            var mTestEmail = new ToolStripMenuItem(TranslationManager.GetString("menu.test_email"));
-            mTestEmail.Click += async (s, e) => await TestChangeSelectedEmail();
-            test.DropDownItems.Add(mTestEmail);
-            ms.Items.Add(test);
+            // Add Test menu (conditionally)
+            if (Program.Config.ShowTestMenu)
+            {
+                var test = new ToolStripMenuItem(TranslationManager.GetString("menu.test"));
+                var mTestEmail = new ToolStripMenuItem(TranslationManager.GetString("menu.test_email"));
+                mTestEmail.Click += async (s, e) => await TestChangeSelectedEmail();
+                test.DropDownItems.Add(mTestEmail);
+                ms.Items.Add(test);
+            }
 
-            // Add Clipboard menu
-            var clipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.clipboard"));
-            var mToggleClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.toggle_clipboard"));
-            mToggleClipboard.Click += (s, e) => ToggleClipboardMonitoring();
-            clipboard.DropDownItems.Add(mToggleClipboard);
-            
-            var mTestClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.test_clipboard"));
-            mTestClipboard.Click += (s, e) => {
-                LogDebug(TranslationManager.GetString("debug.menu_clicked"));
-                TestClipboardCheck();
-            };
-            clipboard.DropDownItems.Add(mTestClipboard);
-            
-            ms.Items.Add(clipboard);
+            // Add Clipboard menu (conditionally)
+            ToolStripMenuItem mToggleClipboard = null;
+            if (Program.Config.ShowClipboardMenu)
+            {
+                var clipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.clipboard"));
+                mToggleClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.toggle_clipboard"));
+                mToggleClipboard.Click += (s, e) => ToggleClipboardMonitoring();
+                clipboard.DropDownItems.Add(mToggleClipboard);
+                
+                var mTestClipboard = new ToolStripMenuItem(TranslationManager.GetString("menu.test_clipboard"));
+                mTestClipboard.Click += (s, e) => {
+                    LogDebug(TranslationManager.GetString("debug.menu_clicked"));
+                    TestClipboardCheck();
+                };
+                clipboard.DropDownItems.Add(mTestClipboard);
+                
+                ms.Items.Add(clipboard);
+            }
 
-            // Store reference to toggle menu item for updating text
-            _toggleClipboardMenuItem = mToggleClipboard;
-            UpdateClipboardMenuText();
+            // Store reference to toggle menu item for updating text (only if clipboard menu is shown)
+            if (Program.Config.ShowClipboardMenu && mToggleClipboard != null)
+            {
+                _toggleClipboardMenuItem = mToggleClipboard;
+                UpdateClipboardMenuText();
+            }
 
             return ms;
         }
@@ -276,8 +375,17 @@ namespace CRMTogether.PwaHost
             {
                 var wa = Screen.FromControl(this).WorkingArea;
                 int width = 390;
-                int height = (int)(wa.Height * 0.90);
-                this.Size = new Size(width, height);
+                
+                // Calculate height using fixed menu and status bar heights
+                int menuHeight = 30; // Fixed menu height
+                int statusHeight = 22; // Fixed status height
+                int availableHeight = (int)(wa.Height * 0.90);
+                int webViewHeight = availableHeight - menuHeight - statusHeight;
+                
+                // Ensure minimum height
+                int totalHeight = Math.Max(400, menuHeight + webViewHeight + statusHeight);
+                
+                this.Size = new Size(width, totalHeight);
                 this.Location = new Point(wa.Right - this.Width, wa.Top);
 
                 var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -291,6 +399,13 @@ namespace CRMTogether.PwaHost
                 LogDebug("Initializing WebView2...");
                 await _webView.EnsureCoreWebView2Async(env);
                 LogDebug("WebView2 initialized successfully");
+                
+                // Ensure WebView is properly sized after initialization
+                await Task.Delay(100); // Small delay to ensure WebView is ready
+                EnsureWebViewProperSize();
+                
+                // Log menu dimensions for debugging
+                LogMenuDimensions();
             }
             catch (Exception ex)
             {
@@ -390,6 +505,13 @@ namespace CRMTogether.PwaHost
                 
                 foreach (var w in _watchers) { try { w.Dispose(); } catch { } }
                 _watchers.Clear();
+
+                // Check if folder monitoring is enabled
+                if (!Program.Config.EnableFolderMonitoring)
+                {
+                    LogDebug("Folder monitoring is disabled for this environment, skipping watcher creation");
+                    return;
+                }
 
                 LogDebug($"WatchedFolders count: {Program.Config.WatchedFolders.Count}");
                 foreach (var folder in Program.Config.WatchedFolders)
@@ -1954,32 +2076,36 @@ namespace CRMTogether.PwaHost
 
         protected override void WndProc(ref Message m)
         {
-            // Handle clipboard change notifications
-            if (m.Msg == WM_CLIPBOARDUPDATE)
+            // Only process clipboard events if monitoring is enabled
+            if (_clipboardMonitoringEnabled)
             {
-                // Debounce rapid clipboard changes
-                var now = DateTime.Now;
-                if ((now - _lastClipboardCheck).TotalMilliseconds > CLIPBOARD_DEBOUNCE_MS)
+                // Handle clipboard change notifications
+                if (m.Msg == WM_CLIPBOARDUPDATE)
                 {
-                    _lastClipboardCheck = now;
-                    LogDebug("Clipboard change notification received (debounced)");
-                    // Small delay to allow clipboard to update
-                    Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                    // Debounce rapid clipboard changes
+                    var now = DateTime.Now;
+                    if ((now - _lastClipboardCheck).TotalMilliseconds > CLIPBOARD_DEBOUNCE_MS)
+                    {
+                        _lastClipboardCheck = now;
+                        LogDebug("Clipboard change notification received (debounced)");
+                        // Small delay to allow clipboard to update
+                        Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                    }
+                    else
+                    {
+                        LogDebug("Clipboard change notification ignored (debounced)");
+                    }
                 }
-                else
+                // Monitor for text selection changes using Windows messages
+                else if (m.Msg == 0x0100) // WM_KEYDOWN
                 {
-                    LogDebug("Clipboard change notification ignored (debounced)");
-                }
-            }
-            // Monitor for text selection changes using Windows messages
-            else if (m.Msg == 0x0100) // WM_KEYDOWN
-            {
-                // Check if Ctrl+C or Ctrl+A was pressed (common copy/select operations)
-                if (m.WParam.ToInt32() == 0x43 && Control.ModifierKeys == Keys.Control) // Ctrl+C
-                {
-                    LogDebug("Ctrl+C detected in WndProc");
-                    // Small delay to allow clipboard to update
-                    Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                    // Check if Ctrl+C or Ctrl+A was pressed (common copy/select operations)
+                    if (m.WParam.ToInt32() == 0x43 && Control.ModifierKeys == Keys.Control) // Ctrl+C
+                    {
+                        LogDebug("Ctrl+C detected in WndProc");
+                        // Small delay to allow clipboard to update
+                        Task.Delay(100).ContinueWith(_ => CheckClipboardChanges(null));
+                    }
                 }
             }
             

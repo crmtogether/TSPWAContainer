@@ -40,18 +40,8 @@ namespace CRMTogether.PwaHost
 
             Config = AppConfig.LoadDefault();
 
-            // Use command line URL if provided, otherwise use last URL, then startup URL
-            if (string.IsNullOrWhiteSpace(initialUrl))
-            {
-                if (!string.IsNullOrWhiteSpace(Config.LastUrl))
-                {
-                    initialUrl = Config.LastUrl;
-                }
-                else
-                {
-                    initialUrl = Config.StartupUrl;
-                }
-            }
+            // Always use the configured startup URL from environment settings
+            initialUrl = Config.StartupUrl;
 
             MainFormInstance = new MainForm { InitialUrl = initialUrl };
 

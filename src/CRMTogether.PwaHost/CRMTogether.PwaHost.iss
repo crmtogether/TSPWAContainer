@@ -1,7 +1,7 @@
 ; CRMTogether PWA Host Installer Script
 ; Generated for CRMTogether.PwaHost v2.0.0.0
 
-#define MyAppName "CRM Together ContextAI"
+#define MyAppName "CRM Together App Bridge"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "CRMTogether"
 #define MyAppURL "https://crmtogether.com"

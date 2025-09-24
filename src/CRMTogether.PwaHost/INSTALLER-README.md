@@ -46,7 +46,7 @@ This directory contains the Inno Setup script and build tools for creating a Win
 ## Installer Features
 
 ### Application Information
-- **Name**: CRM Together ContextAI
+- **Name**: CRM Together App Bridge
 - **Version**: 2.0.0
 - **Publisher**: CRMTogether
 - **Description**: WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support
@@ -55,8 +55,8 @@ This directory contains the Inno Setup script and build tools for creating a Win
 - **Desktop Icon**: Optional desktop shortcut
 - **Quick Launch Icon**: Optional quick launch shortcut (Windows 7 and earlier)
 - **File Associations**: 
-  - `.eml` files → CRM Together ContextAI
-  - `.phone` files → CRM Together ContextAI
+  - `.eml` files → CRM Together App Bridge
+  - `.phone` files → CRM Together App Bridge
 - **Protocol Handler**: `crmtog://` protocol registration
 
 ### Multi-Language Support

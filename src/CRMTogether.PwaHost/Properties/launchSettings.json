@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CRMTogether.PwaHost": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Environment": "Sage100"
+      }
+    }
+  }
+}

@@ -20,19 +20,8 @@ namespace CRMTogether.PwaHost
         // Home page management
         public string SetHomePage(string url)
         {
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException("URL is required", nameof(url));
-
-            try
-            {
-                Program.Config.StartupUrl = url;
-                Program.Config.Save();
-                return $"Home page set to: {url}";
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to set home page: {ex.Message}");
-            }
+            // Startup URL is now controlled by environment configuration and cannot be changed
+            return "Startup URL is controlled by environment configuration and cannot be changed";
         }
 
         public string GetHomePage()

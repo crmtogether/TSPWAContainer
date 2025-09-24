@@ -119,7 +119,7 @@ namespace CRMTogether.PwaHost
             _translations = new Dictionary<string, string>
             {
                 // Application
-                { "app.title", "CRM Together ContextAI" },
+                { "app.title", "CRM Together App Bridge" },
                 { "app.ready", "Ready" },
                 
                 // Menu items
