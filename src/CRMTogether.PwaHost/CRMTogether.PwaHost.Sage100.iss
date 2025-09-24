@@ -59,43 +59,43 @@ Name: "registerprotocol"; Description: "Register crmtog:// protocol handler"; Gr
 
 [Files]
 ; Main application executable
-Source: "bin\x64\Release\net481\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\{#MyAppExeName}.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\{#MyAppExeName}.pdb"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "bin\x64\Release\net48\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\{#MyAppExeName}.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\{#MyAppExeName}.pdb"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Application icon
-Source: "bin\x64\Release\net481\images\crmtogethericon.ico"; DestDir: "{app}\images"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\images\crmtogethericon.ico"; DestDir: "{app}\images"; Flags: ignoreversion
 
 ; Translation files
-Source: "bin\x64\Release\net481\translations\*.json"; DestDir: "{app}\translations"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\translations\*.json"; DestDir: "{app}\translations"; Flags: ignoreversion
 
 ; Environment configuration files
-Source: "bin\x64\Release\net481\config\*.json"; DestDir: "{app}\config"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\config\*.json"; DestDir: "{app}\config"; Flags: ignoreversion
 
 ; .NET Framework dependencies
-Source: "bin\x64\Release\net481\Microsoft.Bcl.AsyncInterfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\Microsoft.Web.WebView2.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\Microsoft.Web.WebView2.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\Microsoft.Web.WebView2.Wpf.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\MimeKit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Buffers.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.IO.Pipelines.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Memory.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Numerics.Vectors.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Runtime.CompilerServices.Unsafe.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Text.Encodings.Web.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Text.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.Threading.Tasks.Extensions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\System.ValueTuple.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\Microsoft.Bcl.AsyncInterfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\Microsoft.Web.WebView2.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\Microsoft.Web.WebView2.WinForms.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\Microsoft.Web.WebView2.Wpf.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\MimeKit.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Buffers.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.IO.Pipelines.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Memory.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Numerics.Vectors.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Runtime.CompilerServices.Unsafe.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Text.Encodings.Web.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Text.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.Threading.Tasks.Extensions.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\System.ValueTuple.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 ; WebView2 runtime files
-Source: "bin\x64\Release\net481\runtimes\win-x64\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-x64\native"; Flags: ignoreversion
-Source: "bin\x64\Release\net481\runtimes\win-x86\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-x86\native"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "bin\x64\Release\net481\runtimes\win-arm64\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-arm64\native"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "bin\x64\Release\net48\runtimes\win-x64\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-x64\native"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\runtimes\win-x86\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-x86\native"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "bin\x64\Release\net48\runtimes\win-arm64\native\WebView2Loader.dll"; DestDir: "{app}\runtimes\win-arm64\native"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Additional dependencies
-Source: "bin\x64\Release\net481\BouncyCastle.Cryptography.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\x64\Release\net48\BouncyCastle.Cryptography.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation
 Source: "README.txt"; DestDir: "{app}"; Flags: ignoreversion

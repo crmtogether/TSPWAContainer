@@ -80,12 +80,12 @@ echo.
 REM Determine the executable name and path based on environment
 if /i "%BUILD_ENVIRONMENT%"=="Sage100" (
     set "EXE_NAME=CRMTogether.PwaHost.Sage100.exe"
-    set "EXE_PATH=bin\%BUILD_PLATFORM%\%BUILD_CONFIGURATION%\net481\%EXE_NAME%"
+    set "EXE_PATH=bin\%BUILD_PLATFORM%\%BUILD_CONFIGURATION%\net48\%EXE_NAME%"
     set "INSTALLER_SCRIPT=CRMTogether.PwaHost.Sage100.iss"
     set "INSTALLER_NAME=SetupAppBridge_Sage100_Client.exe"
 ) else (
     set "EXE_NAME=CRMTogether.PwaHost.exe"
-    set "EXE_PATH=bin\%BUILD_PLATFORM%\%BUILD_CONFIGURATION%\net481\%EXE_NAME%"
+    set "EXE_PATH=bin\%BUILD_PLATFORM%\%BUILD_CONFIGURATION%\net48\%EXE_NAME%"
     set "INSTALLER_SCRIPT=CRMTogether.PwaHost.iss"
     set "INSTALLER_NAME=SetupAppBridge_Client.exe"
 )

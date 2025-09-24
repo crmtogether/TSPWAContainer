@@ -2,4 +2,4 @@
   /n "Together Software Limited" ^
   /tr http://timestamp.comodoca.com ^
   /td sha256 /fd sha256 ^
-  "C:\Marc\github\TSPWAContainer\src\CRMTogether.PwaHost\bin\x64\Release\net481\CRMTogether.PwaHost.Sage100.exe"
+  "C:\Marc\github\TSPWAContainer\src\CRMTogether.PwaHost\bin\x64\Release\net48\CRMTogether.PwaHost.Sage100.exe"
