@@ -1,7 +1,7 @@
 ; CRMTogether PWA Host Installer Script - Sage100 Edition
 ; Generated for CRMTogether.PwaHost.Sage100 v2.0.0.0
 
-#define MyAppName "CRM Together App Bridge - Sage100"
+#define MyAppName "CRM Together AppBridge - Sage100"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "CRMTogether"
 #define MyAppURL "https://appmxs100.crmtogether.com"
@@ -27,7 +27,7 @@ LicenseFile=
 InfoBeforeFile=
 InfoAfterFile=
 OutputDir=installer
-OutputBaseFilename=SetupContextAI_Sage100_Client
+OutputBaseFilename=SetupAppBridge_Sage100_Client
 SetupIconFile=images\crmtogethericon.ico
 Compression=lzma
 SolidCompression=yes
@@ -55,9 +55,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
-Name: "associateeml"; Description: "Associate .eml files with {#MyAppName}"; GroupDescription: "File associations:"; Flags: checkedonce
-Name: "associatephone"; Description: "Associate .phone files with {#MyAppName}"; GroupDescription: "File associations:"; Flags: checkedonce
-Name: "registerprotocol"; Description: "Register crmtog-sage100:// protocol handler"; GroupDescription: "Protocol handlers:"; Flags: checkedonce
+Name: "registerprotocol"; Description: "Register crmtog:// protocol handler"; GroupDescription: "Protocol handlers:"; Flags: checkedonce
 
 [Files]
 ; Main application executable
@@ -114,23 +112,11 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-; Register .eml file association for Sage100
-Root: HKCR; Subkey: ".eml"; ValueType: string; ValueName: ""; ValueData: "CRMTogetherEMLSage100"; Flags: uninsdeletevalue; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEMLSage100"; ValueType: string; ValueName: ""; ValueData: "CRM Together EML File - Sage100"; Flags: uninsdeletekey; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEMLSage100\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEMLSage100\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: associateeml
-
-; Register .phone file association for Sage100
-Root: HKCR; Subkey: ".phone"; ValueType: string; ValueName: ""; ValueData: "CRMTogetherPhoneSage100"; Flags: uninsdeletevalue; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhoneSage100"; ValueType: string; ValueName: ""; ValueData: "CRM Together Phone File - Sage100"; Flags: uninsdeletekey; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhoneSage100\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhoneSage100\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: associatephone
-
-; Register crmtog-sage100:// protocol handler
-Root: HKCR; Subkey: "crmtog-sage100"; ValueType: string; ValueName: ""; ValueData: "URL:CRM Together Protocol - Sage100"; Flags: uninsdeletekey; Tasks: registerprotocol
-Root: HKCR; Subkey: "crmtog-sage100"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Tasks: registerprotocol
-Root: HKCR; Subkey: "crmtog-sage100\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: registerprotocol
-Root: HKCR; Subkey: "crmtog-sage100\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: registerprotocol
+; Register crmtog:// protocol handler
+Root: HKCR; Subkey: "crmtog"; ValueType: string; ValueName: ""; ValueData: "URL:CRM Together Protocol"; Flags: uninsdeletekey; Tasks: registerprotocol
+Root: HKCR; Subkey: "crmtog"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Tasks: registerprotocol
+Root: HKCR; Subkey: "crmtog\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: registerprotocol
+Root: HKCR; Subkey: "crmtog\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: registerprotocol
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\logs"

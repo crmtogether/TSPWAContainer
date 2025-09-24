@@ -1,7 +1,8 @@
 {
   "Environment": "Sage100",
+  "devStartupUrl": "https://localhost:5173/",
   "StartupUrl": "https://appmxs100.crmtogether.com",
-  "AppName": "CRM Together App Bridge - Sage100",
+  "AppName": "CRM Together AppBridge - Sage100",
   "AppDescription": "WinForms WebView2 host for Sage100 integration with clipboard monitoring, custom URI handling, and multi-language support",
   "ProtocolHandler": "crmtog-sage100",
   "FileAssociations": {

@@ -18,7 +18,7 @@ namespace CRMTogether.PwaHost
         
         // Environment-specific properties
         public string Environment { get; set; } = "Default";
-        public string AppName { get; set; } = "CRM Together App Bridge";
+        public string AppName { get; set; } = "CRM Together AppBridge";
         public string AppDescription { get; set; } = "WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support";
         public string ProtocolHandler { get; set; } = "crmtog";
         public BuildInfo BuildInfo { get; set; } = new BuildInfo();

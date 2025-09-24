@@ -1,7 +1,7 @@
 ; CRMTogether PWA Host Installer Script
 ; Generated for CRMTogether.PwaHost v2.0.0.0
 
-#define MyAppName "CRM Together App Bridge"
+#define MyAppName "CRM Together AppBridge"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "CRMTogether"
 #define MyAppURL "https://crmtogether.com"
@@ -27,7 +27,7 @@ LicenseFile=
 InfoBeforeFile=
 InfoAfterFile=
 OutputDir=installer
-OutputBaseFilename=SetupContextAI_Client
+OutputBaseFilename=SetupAppBridge_Client
 SetupIconFile=images\crmtogethericon.ico
 Compression=lzma
 SolidCompression=yes
@@ -55,8 +55,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
-Name: "associateeml"; Description: "Associate .eml files with {#MyAppName}"; GroupDescription: "File associations:"; Flags: checkedonce
-Name: "associatephone"; Description: "Associate .phone files with {#MyAppName}"; GroupDescription: "File associations:"; Flags: checkedonce
+
 Name: "registerprotocol"; Description: "Register crmtog:// protocol handler"; GroupDescription: "Protocol handlers:"; Flags: checkedonce
 
 [Files]
@@ -111,18 +110,6 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-; Register .eml file association
-Root: HKCR; Subkey: ".eml"; ValueType: string; ValueName: ""; ValueData: "CRMTogetherEML"; Flags: uninsdeletevalue; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEML"; ValueType: string; ValueName: ""; ValueData: "CRM Together EML File"; Flags: uninsdeletekey; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEML\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: associateeml
-Root: HKCR; Subkey: "CRMTogetherEML\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: associateeml
-
-; Register .phone file association
-Root: HKCR; Subkey: ".phone"; ValueType: string; ValueName: ""; ValueData: "CRMTogetherPhone"; Flags: uninsdeletevalue; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhone"; ValueType: string; ValueName: ""; ValueData: "CRM Together Phone File"; Flags: uninsdeletekey; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhone\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\images\crmtogethericon.ico"; Tasks: associatephone
-Root: HKCR; Subkey: "CRMTogetherPhone\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: associatephone
-
 ; Register crmtog:// protocol handler
 Root: HKCR; Subkey: "crmtog"; ValueType: string; ValueName: ""; ValueData: "URL:CRM Together Protocol"; Flags: uninsdeletekey; Tasks: registerprotocol
 Root: HKCR; Subkey: "crmtog"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Tasks: registerprotocol

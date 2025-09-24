@@ -119,7 +119,7 @@ namespace CRMTogether.PwaHost
             _translations = new Dictionary<string, string>
             {
                 // Application
-                { "app.title", "CRM Together App Bridge" },
+                { "app.title", "CRM Together AppBridge" },
                 { "app.ready", "Ready" },
                 
                 // Menu items
@@ -142,8 +142,8 @@ namespace CRMTogether.PwaHost
                 { "settings.select_folder_description", "Select a folder to monitor" },
                 
                 // About form
-                { "about.title", "About CRM Together ContextAI" },
-                { "about.content", "CRM Together ContextAI\n\nVersion: {0}\nAssembly: {1}\n\nWebView2 Runtime: {2}\n\n© CRMTogether" },
+                { "about.title", "About CRM Together AppBridge" },
+                { "about.content", "CRM Together AppBridge\n\nVersion: {0}\nAssembly: {1}\n\nWebView2 Runtime: {2}\n\n© CRMTogether" },
                 { "about.ok", "OK" },
                 
                 // Clipboard monitoring

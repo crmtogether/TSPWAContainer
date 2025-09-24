@@ -1,7 +1,7 @@
 {
   "Environment": "Default",
   "StartupUrl": "https://crmtogether.com/univex-app-home/",
-  "AppName": "CRM Together App Bridge",
+  "AppName": "CRM Together AppBridge",
   "AppDescription": "WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support",
   "ProtocolHandler": "crmtog",
   "FileAssociations": {

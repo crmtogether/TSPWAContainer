@@ -1,5 +1,5 @@
 {
-  "app.title": "CRM Together ContextAI",
+  "app.title": "CRM Together AppBridge",
   "app.ready": "Prêt",
   
   "menu.settings": "Paramètres",
@@ -14,8 +14,8 @@
   "settings.close": "Fermer",
   "settings.select_folder_description": "Sélectionnez un dossier à surveiller",
   
-  "about.title": "À propos de CRM Together ContextAI",
-  "about.content": "CRM Together ContextAI\n\nVersion : {0}\nAssembly : {1}\n\nWebView2 Runtime : {2}\n\n© CRMTogether",
+  "about.title": "À propos de CRM Together AppBridge",
+  "about.content": "CRM Together AppBridge\n\nVersion : {0}\nAssembly : {1}\n\nWebView2 Runtime : {2}\n\n© CRMTogether",
   "about.ok": "OK",
   
   "menu.test": "Test",

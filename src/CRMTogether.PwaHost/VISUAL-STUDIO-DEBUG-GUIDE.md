@@ -105,14 +105,14 @@ Applied environment config: Default
 - ❌ **No "Clipboard" menu**
 - ❌ **No "Monitored folders..." menu** (in Settings)
 - ✅ **Startup URL**: `https://appmxs100.crmtogether.com`
-- ✅ **Window Title**: "CRM Together App Bridge - Sage100"
+- ✅ **Window Title**: "CRM Together AppBridge - Sage100"
 
 **Default Build Should Show:**
 - ✅ **"Test" menu** visible
 - ✅ **"Clipboard" menu** visible
 - ✅ **"Monitored folders..." menu** visible (in Settings)
 - ✅ **Startup URL**: `https://crmtogether.com/univex-app-home/`
-- ✅ **Window Title**: "CRM Together App Bridge"
+- ✅ **Window Title**: "CRM Together AppBridge"
 
 ## Troubleshooting
 
