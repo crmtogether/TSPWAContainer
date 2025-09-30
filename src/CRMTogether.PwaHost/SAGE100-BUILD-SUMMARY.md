@@ -20,7 +20,7 @@ Created `config/` directory with environment-specific JSON configurations:
 {
   "Environment": "Default",
   "StartupUrl": "https://crmtogether.com/univex-app-home/",
-  "AppName": "CRM Together AppBridge",
+  "AppName": "ContextAgent",
   "ProtocolHandler": "crmtog"
 }
 ```
@@ -30,7 +30,7 @@ Created `config/` directory with environment-specific JSON configurations:
 {
   "Environment": "Sage100",
   "StartupUrl": "https://appmxs100.crmtogether.com",
-  "AppName": "CRM Together AppBridge - Sage100",
+  "AppName": "ContextAgent - Sage100",
   "ProtocolHandler": "crmtog-sage100"
 }
 ```
@@ -57,7 +57,7 @@ Created `config/` directory with environment-specific JSON configurations:
 ### 5. Sage100 Installer Configuration
 Created `CRMTogether.PwaHost.Sage100.iss` with:
 - **Unique App ID**: Different GUID to allow coexistence with default version
-- **Sage100-specific branding**: "CRM Together AppBridge - Sage100"
+- **Sage100-specific branding**: "ContextAgent - Sage100"
 - **Unique protocol handler**: `crmtog-sage100://`
 - **Unique file associations**: `CRMTogetherEMLSage100`, `CRMTogetherPhoneSage100`
 - **Target URL**: Points to `https://appmxs100.crmtogether.com`

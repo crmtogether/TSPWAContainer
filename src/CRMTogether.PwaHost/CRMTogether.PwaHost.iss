@@ -1,7 +1,7 @@
 ; CRMTogether PWA Host Installer Script
 ; Generated for CRMTogether.PwaHost v2.0.0.0
 
-#define MyAppName "CRM Together AppBridge"
+#define MyAppName "ContextAgent"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "CRMTogether"
 #define MyAppURL "https://crmtogether.com"
@@ -20,14 +20,14 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={userappdata}\{#MyAppName}
+DefaultDirName={code:getDefaultDirName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=
 InfoBeforeFile=
 InfoAfterFile=
 OutputDir=installer
-OutputBaseFilename=SetupAppBridge_Client
+OutputBaseFilename=SetupContextAgent_Client
 SetupIconFile=images\crmtogethericon.ico
 Compression=lzma
 SolidCompression=yes
@@ -121,6 +121,17 @@ Type: filesandordirs; Name: "{app}\logs"
 Type: filesandordirs; Name: "{app}\temp"
 
 [Code]
+function getDefaultDirName(Dummy: String): String;
+var
+  apppath: String;
+begin
+  // Use user app data for non-admin installs, common program files for admin installs
+  if IsAdmin() then
+    Result := ExpandConstant('{commonpf}') + '\CRM Together\ContextAgent'
+  else
+    Result := ExpandConstant('{userappdata}') + '\CRM Together\ContextAgent';
+end;
+
 function InitializeSetup(): Boolean;
 begin
   Result := True;

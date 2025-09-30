@@ -1,16 +1,12 @@
 {
   "Environment": "Default",
-  "StartupUrl": "https://crmtogether.com/univex-app-home/",
-  "AppName": "CRM Together AppBridge",
+  "StartupUrl": "https://crmtogether.com/contextagent-app-home/",
+  "AppName": "ContextAgent",
   "AppDescription": "WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support",
   "ProtocolHandler": "crmtog",
-  "FileAssociations": {
-    "eml": "CRMTogetherEML",
-    "phone": "CRMTogetherPhone"
-  },
   "BuildInfo": {
     "Version": "2.0.0",
     "BuildTag": "Default",
-    "TargetUrl": "https://crmtogether.com/univex-app-home/"
+    "TargetUrl": "https://crmtogether.com/contextagent-app-home/"
   }
 }

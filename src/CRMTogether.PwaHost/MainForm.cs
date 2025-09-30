@@ -110,6 +110,7 @@ namespace CRMTogether.PwaHost
         private StatusStrip _statusStrip;
         private ToolStripStatusLabel _statusLabel;
         private readonly Dictionary<string, string> _contextParams = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private object _lastEmailObject = null;
 
         private static readonly string[] AllowedPrefixes = new[] {
             "https://",
@@ -806,6 +807,34 @@ namespace CRMTogether.PwaHost
         public void SetUserAgent(string userAgent) { if (_webView?.CoreWebView2 == null) return; try { _webView.CoreWebView2.Settings.UserAgent = userAgent; } catch { } }
         public string GetUserAgent() { try { return _webView.CoreWebView2?.Settings?.UserAgent ?? string.Empty; } catch { return string.Empty; } }
         
+        public string GetEmailData(string sender)
+        {
+            try
+            {
+                if (_lastEmailObject == null)
+                {
+                    LogDebug("No email data available - no email object has been set yet");
+                    return string.Empty;
+                }
+
+                // Serialize the stored email object to JSON
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(_lastEmailObject);
+                LogDebug($"Retrieved email data for sender: {sender}");
+                return json;
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"Error retrieving email data: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        public void SetLastEmailObject(object emailObject)
+        {
+            _lastEmailObject = emailObject;
+            LogDebug("Email object stored for later retrieval");
+        }
+        
         public void addParam(string name, string value)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
@@ -1204,6 +1233,9 @@ namespace CRMTogether.PwaHost
                     companies = (object)null
                 };
 
+                // Store the email object for later retrieval
+                _lastEmailObject = emailObject;
+
                 // Serialize to JSON
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);
 
@@ -1311,10 +1343,52 @@ namespace CRMTogether.PwaHost
                 // Use AddHostObjectToScript to inject the C# object directly
                 _webView.CoreWebView2.AddHostObjectToScript("pwa", new PwaHostObject(this));
                 
-                // Add a simple script to make the object available as window.pwa
+                // Add a more robust script to make the object available as window.pwa
                 await _webView.CoreWebView2.ExecuteScriptAsync(@"
-                    window.pwa = chrome.webview.hostObjects.pwa;
-                    console.log('PWA Host object injected successfully');
+                    try {
+                        // Store the host object reference
+                        const hostObject = chrome.webview.hostObjects.pwa;
+                        console.log('Host object retrieved:', hostObject);
+                        console.log('Host object type:', typeof hostObject);
+                        
+                        // Create a wrapper that handles async calls properly
+                        window.pwa = {
+                            // Simple synchronous methods
+                            test: () => hostObject.Test(),
+                            getCurrentTime: () => hostObject.GetCurrentTime(),
+                            getVersion: () => hostObject.GetVersion(),
+                            
+                            // Async methods that return promises
+                            getEmailData: (sender) => Promise.resolve(hostObject.getEmailData(sender)),
+                            getHomePage: () => Promise.resolve(hostObject.GetHomePage()),
+                            setHomePage: (url) => Promise.resolve(hostObject.SetHomePage(url)),
+                            navigate: (url) => Promise.resolve(hostObject.Navigate(url)),
+                            reload: () => Promise.resolve(hostObject.Reload()),
+                            goBack: () => Promise.resolve(hostObject.GoBack()),
+                            getCurrentUrl: () => Promise.resolve(hostObject.GetCurrentUrl()),
+                            getTitle: () => Promise.resolve(hostObject.GetTitle()),
+                            bringToFront: () => Promise.resolve(hostObject.BringToFront()),
+                            setSize: (width, height) => Promise.resolve(hostObject.SetSize(width, height)),
+                            executeScript: (js) => Promise.resolve(hostObject.ExecuteScript(js)),
+                            log: (message) => Promise.resolve(hostObject.Log(message)),
+                            testChangeSelectedEmail: () => hostObject.TestChangeSelectedEmail()
+                        };
+                        
+                        console.log('PWA wrapper created successfully');
+                        console.log('PWA object methods:', Object.keys(window.pwa));
+                        
+                        // Test the simple methods
+                        try {
+                            const testResult = window.pwa.test();
+                            console.log('PWA test method successful:', testResult);
+                        } catch (error) {
+                            console.error('PWA test method failed:', error);
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error setting up PWA object:', error);
+                        console.error('Error details:', error.message, error.stack);
+                    }
                 ");
                 LogDebug("PWA host object injected successfully");
             }
@@ -1469,6 +1543,9 @@ namespace CRMTogether.PwaHost
             {
                 var info = EmlParser.Parse(filePath);
                 var emailObject = ConvertEmlToEmailObject(info, filePath);
+                
+                // Store the email object for later retrieval
+                _lastEmailObject = emailObject;
                 
                 // Call the browser function
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);
@@ -1762,6 +1839,9 @@ namespace CRMTogether.PwaHost
                     },
                     companies = (object)null
                 };
+
+                // Store the email object for later retrieval
+                _lastEmailObject = emailObject;
 
                 // Call the browser function
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);

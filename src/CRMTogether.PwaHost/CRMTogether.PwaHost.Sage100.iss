@@ -1,7 +1,7 @@
 ; CRMTogether PWA Host Installer Script - Sage100 Edition
 ; Generated for CRMTogether.PwaHost.Sage100 v2.0.0.0
 
-#define MyAppName "CRM Together AppBridge - Sage100"
+#define MyAppName "ContextAgent - Sage100"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "CRMTogether"
 #define MyAppURL "https://appmxs100.crmtogether.com"
@@ -20,14 +20,14 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={userappdata}\{#MyAppName}
+DefaultDirName={code:getDefaultDirName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=
 InfoBeforeFile=
 InfoAfterFile=
 OutputDir=installer
-OutputBaseFilename=SetupAppBridge_Sage100_Client
+OutputBaseFilename=SetupContextAgent_Sage100_Client
 SetupIconFile=images\crmtogethericon.ico
 Compression=lzma
 SolidCompression=yes
@@ -123,6 +123,17 @@ Type: filesandordirs; Name: "{app}\logs"
 Type: filesandordirs; Name: "{app}\temp"
 
 [Code]
+function getDefaultDirName(Dummy: String): String;
+var
+  apppath: String;
+begin
+  // Use user app data for non-admin installs, common program files for admin installs
+  if IsAdmin() then
+    Result := ExpandConstant('{commonpf}') + '\CRM Together\ContextAgent-Sage100'
+  else
+    Result := ExpandConstant('{userappdata}') + '\CRM Together\ContextAgent-Sage100';
+end;
+
 function InitializeSetup(): Boolean;
 begin
   Result := True;

@@ -18,7 +18,7 @@ namespace CRMTogether.PwaHost
         
         // Environment-specific properties
         public string Environment { get; set; } = "Default";
-        public string AppName { get; set; } = "CRM Together AppBridge";
+        public string AppName { get; set; } = "ContextAgent";
         public string AppDescription { get; set; } = "WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support";
         public string ProtocolHandler { get; set; } = "crmtog";
         public BuildInfo BuildInfo { get; set; } = new BuildInfo();
@@ -249,7 +249,6 @@ namespace CRMTogether.PwaHost
         public string AppName { get; set; }
         public string AppDescription { get; set; }
         public string ProtocolHandler { get; set; }
-        public FileAssociations FileAssociations { get; set; }
         public BuildInfo BuildInfo { get; set; }
         
         // Feature toggles
@@ -258,11 +257,6 @@ namespace CRMTogether.PwaHost
         public bool EnableFolderMonitoring { get; set; } = true;
     }
 
-    public class FileAssociations
-    {
-        public string eml { get; set; }
-        public string phone { get; set; }
-    }
 
     public class BuildInfo
     {

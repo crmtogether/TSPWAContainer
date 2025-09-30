@@ -1,0 +1,490 @@
+<html>
+<head>
+</head>
+<body>
+
+			<br/><br/>
+         <a href="crmtog://navigate?url=https://appmxs100.crmtogether.com" class="test-button">
+                MX Pro  S100
+            </a>   
+					<br/><br/>
+         <a href="crmtog://navigate?url=https://appacs100.crmtogether.com" class="test-button">
+                AC Pro  S100
+            </a>   
+				
+			
+			
+			<br/><br/>
+         <a href="crmtog://navigate?url=https://localhost:5173/" class="test-button">
+                dev localhost
+            </a>
+
+     <a href="crmtog://navigate?url=https://appmxs100.crmtogether.com" class="test-button">
+                MX Pro  S100
+            </a>  
+
+     <button onclick="testAddParam('emailAddress', 'mary@sage.sample.com')" class="test-button success">
+                Add Email Address (ABS - Sage Cloud)
+            </button>
+<br>
+           <button onclick="testClearParams()" class="test-button warning">
+                Clear All Parameters
+            </button>
+
+   <div class="test-section">
+            <h3>🔗 OpenEntity Tests</h3>
+            <div class="description">
+                Test the OpenEntity method with different entity types. Parameters should be set first using the Parameter Management section above.
+            </div>
+            
+            <button onclick="testOpenEntitySimple('arcustomers', '01_ABS')" class="test-button">
+                Test Account Entity
+            </button>
+            	<br>	<br>
+				
+            <button onclick="testOpenEntitySimple2()" class="test-button">
+                Test Account search on email?
+            </button>
+            	<br>	<br>
+				
+            <div class="uri-display" id="openEntityDisplay">Click a button above to test OpenEntity</div>
+			<br>	<br>
+  <button onclick="testOpenEntitySimple('arcustomers', '02_4045551232')" class="test-button">
+                Test Account Entity (Atlanta Designer)
+            </button>			
+			<br>	<br>
+  <button onclick="testOpenEntitySimple('apvendors', '02_AMERALR')" class="test-button">
+                Test Account Entity (vendor American Alarm Service)
+            </button>				
+						<br>	<br>
+  <button onclick="testOpenEntitySimple('apvendors', 'xxxx')" class="test-button">
+                Test Account Entity (no record match test)
+            </button>	
+			
+        </div>
+   <script>
+        // Parameter Management Functions
+        function testAddParam(name, value) {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = `crmtog:addParam?name=${encodeURIComponent(name)}&value=${encodeURIComponent(value)}`;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating addParam URI: ' + e.message;
+                console.error('addParam URI error:', e);
+            }
+        }
+
+        function testClearParams() {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = 'crmtog://clearParams';
+               	window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating clearParams URI: ' + e.message;
+                console.error('clearParams URI error:', e);
+            }
+        }
+
+        function testGetParams() {
+            const display = document.getElementById('paramDisplay');
+            
+            try {
+                const uri = 'crmtog://getParams';
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating getParams URI: ' + e.message;
+                console.error('getParams URI error:', e);
+            }
+        }
+
+        // Simple OpenEntity function (uses stored parameters)
+        function testOpenEntitySimple(entityType, entityId) {
+            const display = document.getElementById('openEntityDisplay');
+            
+            try {
+                const uri = `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`;
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating OpenEntity URI: ' + e.message;
+                console.error('OpenEntity URI error:', e);
+            }
+        }
+        function testOpenEntitySimple2() {
+            const display = document.getElementById('openEntityDisplay');
+            
+            try {
+                const uri = `crmtog://openEntity?`;
+                display.textContent = uri;
+                window.location.href = uri;
+            } catch (e) {
+                display.textContent = 'Error creating OpenEntity URI: ' + e.message;
+                console.error('OpenEntity URI error:', e);
+            }
+        }
+        // Complete integration flow test
+        function testCompleteFlow(entityType, entityId) {
+            const display = document.getElementById('completeFlowDisplay');
+            
+            try {
+                const steps = [
+                    { uri: 'crmtog://addParam?name=emailAddress&value=john.doe@example.com', description: 'Add Email Address' },
+                    { uri: 'crmtog://addParam?name=phoneNumber&value=+1234567890', description: 'Add Phone Number' },
+                    { uri: 'crmtog://addParam?name=address&value=3015 Lake Drive, Citywest, Dublin 24', description: 'Add Address' },
+                    { uri: 'crmtog://addParam?name=name&value=John Doe', description: 'Add Name' },
+                    { uri: `crmtog://openEntity?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`, description: 'Open Entity' }
+                ];
+                
+                let html = '<strong>Complete Integration Flow:</strong><br><br>';
+                html += '<strong>Manual Steps (click each button to execute):</strong><br>';
+                
+                steps.forEach((step, index) => {
+                    html += `<button onclick="executeStep('${step.uri}', '${step.description}')" class="test-button" style="margin: 2px; font-size: 12px; padding: 5px 10px;">${index + 1}. ${step.description}</button><br>`;
+                });
+                
+                html += '<br><strong>Or execute all steps automatically:</strong><br>';
+                html += '<button onclick="executeAllSteps()" class="test-button success" style="margin: 5px;">Execute All Steps</button><br>';
+                
+                html += '<br><strong>Step Details:</strong><br>';
+                steps.forEach((step, index) => {
+                    html += `${index + 1}. ${step.description}<br><code style="font-size: 11px; background: #f0f0f0; padding: 2px;">${step.uri}</code><br><br>`;
+                });
+                
+                display.innerHTML = html;
+                
+            } catch (e) {
+                display.textContent = 'Error creating complete flow: ' + e.message;
+                console.error('Complete flow error:', e);
+            }
+        }
+
+        // Execute a single step
+        function executeStep(uri, description) {
+            const display = document.getElementById('completeFlowDisplay');
+            display.innerHTML += `<br>→ Executing: ${description}`;
+            window.location.href = uri;
+        }
+
+        // Execute all steps with delays
+        function executeAllSteps() {
+            const steps = [
+                { uri: 'crmtog://addParam?name=emailAddress&value=john.doe@example.com', description: 'Add Email Address' },
+                { uri: 'crmtog://addParam?name=phoneNumber&value=+1234567890', description: 'Add Phone Number' },
+                { uri: 'crmtog://addParam?name=address&value=3015 Lake Drive, Citywest, Dublin 24', description: 'Add Address' },
+                { uri: 'crmtog://addParam?name=name&value=John Doe', description: 'Add Name' },
+                { uri: 'crmtog://openEntity?entityType=contact&entityId=12345', description: 'Open Entity' }
+            ];
+            
+            const display = document.getElementById('completeFlowDisplay');
+            display.innerHTML += '<br><br><strong>Auto-executing all steps...</strong>';
+            
+            executeStepsSequentially(steps, 0, display);
+        }
+
+        // Helper function to execute steps sequentially
+        function executeStepsSequentially(steps, currentIndex, display) {
+            if (currentIndex >= steps.length) {
+                display.innerHTML += '<br><br><strong>✅ All steps completed!</strong>';
+                return;
+            }
+            
+            const step = steps[currentIndex];
+            display.innerHTML += `<br>→ Executing step ${currentIndex + 1}: ${step.description}`;
+            
+            // Execute the current step
+            window.location.href = step.uri;
+            
+            // Wait 2 seconds before executing the next step
+            setTimeout(() => {
+                executeStepsSequentially(steps, currentIndex + 1, display);
+            }, 2000);
+        }
+
+        function testCustomUri() {
+            const uri = document.getElementById('customUri').value;
+            const display = document.getElementById('customUriDisplay');
+            
+            if (!uri) {
+                alert('Please enter a URI to test');
+                return;
+            }
+            
+            if (!uri.startsWith('crmtog://')) {
+                alert('URI must start with crmtog://');
+                return;
+            }
+            
+            display.textContent = uri;
+            
+            // Try to navigate to the URI
+            try {
+                window.location.href = uri;
+            } catch (e) {
+                alert('Error testing URI: ' + e.message);
+            }
+        }
+
+        // Add some test functions to the page for URI testing
+        window.testFunction = function(message) {
+            alert('Test function called with: ' + message);
+            return 'Function executed successfully';
+        };
+
+        window.getPageInfo = function() {
+            return {
+                title: document.title,
+                url: window.location.href,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            };
+        };
+
+        // Phone file download functions
+        function generateRandomPhoneNumber() {
+            // Generate a random phone number in various formats
+            const formats = [
+                // US format: (XXX) XXX-XXXX
+                () => `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // International format: +1-XXX-XXX-XXXX
+                () => `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // Simple format: XXX-XXX-XXXX
+                () => `${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+                // International with country code: +44-XXXX-XXXXXX
+                () => `+44-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 900000) + 100000}`,
+                // European format: +49-XXX-XXXXXXX
+                () => `+49-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000000) + 1000000}`
+            ];
+            
+            const randomFormat = formats[Math.floor(Math.random() * formats.length)];
+            return randomFormat();
+        }
+
+        function downloadPhoneFile(phoneNumber, filename) {
+            const content = `Phone Number: ${phoneNumber}\nGenerated: ${new Date().toISOString()}\nType: Test Phone File\n\nThis is a test file generated by CRMTogether PWA Host URI Test Page.`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadRandomPhoneFile() {
+            const phoneNumber = generateRandomPhoneNumber();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-phone-${timestamp}.phone`;
+            
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber})`;
+        }
+
+        function downloadCustomPhoneFile() {
+            const phoneNumber = prompt('Enter a phone number for the test file:');
+            if (!phoneNumber) {
+                return;
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `custom-phone-${timestamp}.phone`;
+            
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber})`;
+        }
+
+        function downloadToDownloadsFolder() {
+            const phoneNumber = generateRandomPhoneNumber();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-phone-${timestamp}.phone`;
+            
+            // Try to download to Downloads folder using a data URI approach
+            // Note: This will still use the browser's default download location
+            // but we'll provide clear instructions
+            downloadPhoneFile(phoneNumber, filename);
+            
+            const display = document.getElementById('phoneFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${phoneNumber}) - Check your Downloads folder or drag the file onto the app window`;
+            
+            // Show additional instructions
+            setTimeout(() => {
+                alert(`File downloaded: ${filename}\n\nTo test the app reaction:\n1. Go to your Downloads folder\n2. Find the file: ${filename}\n3. Drag it onto the CRMTogether PWA Host app window\n\nOr the app should automatically detect it if it's watching your Downloads folder.`);
+            }, 500);
+        }
+
+        // EML file generation functions
+        function generateRandomEmailContent() {
+            const subjects = [
+                "Meeting Request for Next Week",
+                "Project Update - Q4 Review",
+                "Invoice #INV-2024-001",
+                "Vacation Request Approval",
+                "New Client Onboarding",
+                "System Maintenance Notice",
+                "Quarterly Report Available",
+                "Team Building Event",
+                "Budget Review Meeting",
+                "Security Alert - Password Reset"
+            ];
+            
+            const senders = [
+                "john.doe@company.com",
+                "sarah.smith@company.com", 
+                "mike.johnson@company.com",
+                "lisa.wilson@company.com",
+                "david.brown@company.com",
+                "emma.davis@company.com",
+                "alex.garcia@company.com",
+                "jessica.miller@company.com"
+            ];
+            
+            const recipients = [
+                "team@company.com",
+                "manager@company.com",
+                "support@company.com",
+                "hr@company.com",
+                "finance@company.com"
+            ];
+            
+            const bodies = [
+                "Hello,\n\nI hope this email finds you well. I wanted to follow up on our previous discussion regarding the upcoming project deadline.\n\nBest regards,",
+                "Hi there,\n\nPlease find attached the requested documents for your review. Let me know if you need any clarification.\n\nThanks,",
+                "Dear Team,\n\nThis is a reminder about the upcoming meeting scheduled for next Tuesday at 2:00 PM.\n\nPlease confirm your attendance.\n\nRegards,",
+                "Hello,\n\nI wanted to inform you about the recent changes to our company policies. Please review the attached document.\n\nBest,",
+                "Hi,\n\nThank you for your recent inquiry. I've attached the information you requested.\n\nPlease let me know if you have any questions.\n\nKind regards,"
+            ];
+            
+            const subject = subjects[Math.floor(Math.random() * subjects.length)];
+            const from = senders[Math.floor(Math.random() * senders.length)];
+            const to = recipients[Math.floor(Math.random() * recipients.length)];
+            const body = bodies[Math.floor(Math.random() * bodies.length)];
+            const date = new Date();
+            
+            return {
+                subject: subject,
+                from: from,
+                to: to,
+                body: body,
+                date: date.toUTCString()
+            };
+        }
+
+        function generateEmlContent(emailData) {
+            const boundary = "----=_Part_" + Math.random().toString(36).substr(2, 9);
+            
+            return `Return-Path: <${emailData.from}>
+Received: from mail.company.com (mail.company.com [192.168.1.100])
+	by mail.company.com (Postfix) with ESMTP id 1234567890
+	for <${emailData.to}>; ${emailData.date}
+Message-ID: <${Math.random().toString(36).substr(2, 16)}@company.com>
+Date: ${emailData.date}
+From: ${emailData.from}
+To: ${emailData.to}
+Subject: ${emailData.subject}
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="${boundary}"
+
+--${boundary}
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+${emailData.body}
+
+--${boundary}
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>${emailData.body.replace(/\n/g, '<br>')}</p>
+</body>
+</html>
+
+--${boundary}--`;
+        }
+
+        function downloadEmlFile(emailData, filename) {
+            const content = generateEmlContent(emailData);
+            
+            const blob = new Blob([content], { type: 'message/rfc822' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadRandomEmlFile() {
+            const emailData = generateRandomEmailContent();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject})`;
+        }
+
+        function downloadCustomEmlFile() {
+            const subject = prompt('Enter email subject:') || 'Test Email Subject';
+            const from = prompt('Enter sender email:') || 'test@company.com';
+            const to = prompt('Enter recipient email:') || 'recipient@company.com';
+            const body = prompt('Enter email body:') || 'This is a test email body.';
+            
+            const emailData = {
+                subject: subject,
+                from: from,
+                to: to,
+                body: body,
+                date: new Date().toUTCString()
+            };
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `custom-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject})`;
+        }
+
+        function downloadEmlToDownloadsFolder() {
+            const emailData = generateRandomEmailContent();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `test-email-${timestamp}.eml`;
+            
+            downloadEmlFile(emailData, filename);
+            
+            const display = document.getElementById('emlFileDisplay');
+            display.textContent = `Downloaded: ${filename} (${emailData.subject}) - Check your Downloads folder or drag the file onto the app window`;
+            
+            // Show additional instructions
+            setTimeout(() => {
+                alert(`EML file downloaded: ${filename}\n\nSubject: ${emailData.subject}\nFrom: ${emailData.from}\nTo: ${emailData.to}\n\nTo test the app reaction:\n1. Go to your Downloads folder\n2. Find the file: ${filename}\n3. Drag it onto the CRMTogether PWA Host app window\n\nOr the app should automatically detect it if it's watching your Downloads folder.`);
+            }, 500);
+        }
+
+        // Log when page loads
+        console.log('CRMTogether PWA Host URI Test Page loaded');
+        console.log('Available test functions: testFunction, getPageInfo');
+        console.log('Available phone functions: downloadRandomPhoneFile, downloadCustomPhoneFile');
+        console.log('Available EML functions: downloadRandomEmlFile, downloadCustomEmlFile');
+    </script>			
+</body>
+
+</html>

@@ -1,8 +1,9 @@
 @echo off
 REM Convenience script to build Sage100 app only
 REM This is equivalent to: build-app-only.bat --environment Sage100
+REM ./build-sage100-app.bat
 
-echo Building CRM Together AppBridge - Sage100 (App Only)
+echo Building ContextAgent - Sage100 (App Only)
 echo.
 
 call build-app-only.bat --environment Sage100

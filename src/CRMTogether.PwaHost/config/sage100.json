@@ -1,14 +1,10 @@
 {
   "Environment": "Sage100",
-  "devStartupUrl": "https://localhost:5173/",
-  "StartupUrl": "https://appmxs100.crmtogether.com",
-  "AppName": "CRM Together AppBridge - Sage100",
+  "StartupUrl": "https://localhost:5173/",
+  "liveStartupUrl": "https://appmxs100.crmtogether.com",
+  "AppName": "ContextAgent - Sage100",
   "AppDescription": "WinForms WebView2 host for Sage100 integration with clipboard monitoring, custom URI handling, and multi-language support",
   "ProtocolHandler": "crmtog-sage100",
-  "FileAssociations": {
-    "eml": "CRMTogetherEMLSage100",
-    "phone": "CRMTogetherPhoneSage100"
-  },
   "BuildInfo": {
     "Version": "2.0.0",
     "BuildTag": "Sage100",

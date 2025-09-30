@@ -46,7 +46,7 @@ This directory contains the Inno Setup script and build tools for creating a Win
 ## Installer Features
 
 ### Application Information
-- **Name**: CRM Together AppBridge
+- **Name**: ContextAgent
 - **Version**: 2.0.0
 - **Publisher**: CRMTogether
 - **Description**: WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support
@@ -55,8 +55,8 @@ This directory contains the Inno Setup script and build tools for creating a Win
 - **Desktop Icon**: Optional desktop shortcut
 - **Quick Launch Icon**: Optional quick launch shortcut (Windows 7 and earlier)
 - **File Associations**: 
-  - `.eml` files → CRM Together AppBridge
-  - `.phone` files → CRM Together AppBridge
+  - `.eml` files → ContextAgent
+  - `.phone` files → ContextAgent
 - **Protocol Handler**: `crmtog://` protocol registration
 
 ### Multi-Language Support
@@ -70,7 +70,7 @@ This directory contains the Inno Setup script and build tools for creating a Win
 - x64 or ARM64 architecture
 
 ### Installation Directory
-- Default: `C:\Program Files\CRM Together AppBridge\`
+- Default: `C:\Program Files\ContextAgent\`
 - User can change during installation
 
 ## Installer Contents

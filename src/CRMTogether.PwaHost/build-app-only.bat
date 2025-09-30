@@ -4,7 +4,7 @@ REM This script builds the application but does NOT create the installer
 REM After this completes, manually sign the executable, then run build-installer-only.bat
 
 echo ========================================
-echo CRM Together AppBridge - App Build Only
+echo ContextAgent - App Build Only
 echo ========================================
 echo.
 
@@ -128,9 +128,9 @@ if /i "%BUILD_ENVIRONMENT%"=="Sage100" (
 echo.
 echo 3. After installer is built, MANUALLY SIGN the installer:
 if /i "%BUILD_ENVIRONMENT%"=="Sage100" (
-    echo    File: installer\SetupAppBridge_Sage100_Client.exe
+    echo    File: installer\SetupContextAgent_Sage100_Client.exe
 ) else (
-    echo    File: installer\SetupAppBridge_Client.exe
+    echo    File: installer\SetupContextAgent_Client.exe
 )
 echo.
 

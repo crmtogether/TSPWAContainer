@@ -2,6 +2,7 @@
   "profiles": {
     "CRMTogether.PwaHost": {
       "commandName": "Project",
+      "commandLineArgs": "--environment Sage100",
       "environmentVariables": {
         "Environment": "Sage100"
       }

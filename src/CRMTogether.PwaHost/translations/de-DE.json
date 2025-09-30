@@ -1,5 +1,5 @@
 {
-  "app.title": "CRM Together AppBridge",
+  "app.title": "ContextAgent",
   "app.ready": "Bereit",
   
   "menu.settings": "Einstellungen",
@@ -14,8 +14,8 @@
   "settings.close": "Schließen",
   "settings.select_folder_description": "Wählen Sie einen zu überwachenden Ordner aus",
   
-  "about.title": "Über CRM Together AppBridge",
-  "about.content": "CRM Together AppBridge\n\nVersion: {0}\nAssembly: {1}\n\nWebView2 Runtime: {2}\n\n© CRMTogether",
+  "about.title": "Über ContextAgent",
+  "about.content": "ContextAgent\n\nVersion: {0}\nAssembly: {1}\n\nWebView2 Runtime: {2}\n\n© CRMTogether",
   "about.ok": "OK",
   
   "menu.test": "Test",

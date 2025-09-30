@@ -1,13 +1,15 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace CRMTogether.PwaHost
 {
     /// <summary>
     /// Host object that provides PWA functionality to the web page
     /// </summary>
-    [System.Runtime.InteropServices.ComVisible(true)]
+    [ComVisible(true)]
+    [ClassInterface(ClassInterfaceType.None)]
     public class PwaHostObject
     {
         private readonly MainForm _mainForm;
@@ -15,6 +17,10 @@ namespace CRMTogether.PwaHost
         public PwaHostObject(MainForm mainForm)
         {
             _mainForm = mainForm ?? throw new ArgumentNullException(nameof(mainForm));
+        }
+
+        public string getEmailData(string sender){
+            return _mainForm.GetEmailData(sender);
         }
 
         // Home page management
@@ -219,6 +225,9 @@ namespace CRMTogether.PwaHost
                     companies = (object)null
                 };
 
+                // Store the email object for later retrieval
+                _mainForm.SetLastEmailObject(emailObject);
+
                 // Call the browser function
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);
                 var result = await _mainForm.CallBrowserFunctionAsync("changeSelectedEmail", json);
@@ -243,6 +252,18 @@ namespace CRMTogether.PwaHost
         {
             System.Diagnostics.Debug.WriteLine($"PWA: {message}");
             return $"Logged: {message}";
+        }
+
+        // Simple test method for COM interop
+        public string Test()
+        {
+            return "PWA Host Object is working!";
+        }
+
+        // Simple method to get current time
+        public string GetCurrentTime()
+        {
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         }
     }
 }

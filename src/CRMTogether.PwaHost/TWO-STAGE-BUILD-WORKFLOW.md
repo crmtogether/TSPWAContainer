@@ -68,10 +68,10 @@ build-sage100-app.bat
 ```batch
 build-sage100-installer.bat
 ```
-**Output**: `installer\SetupAppBridge_Sage100_Client.exe`
+**Output**: `installer\SetupContextAgent_Sage100_Client.exe`
 
 #### **Step 4: Manually Sign the Installer**
-- Use your signing tool to sign: `installer\SetupAppBridge_Sage100_Client.exe`
+- Use your signing tool to sign: `installer\SetupContextAgent_Sage100_Client.exe`
 - Verify the signature is applied correctly
 
 ### **Example 2: Default Build with Manual Signing**
@@ -89,10 +89,10 @@ build-app-only.bat
 ```batch
 build-installer-only.bat
 ```
-**Output**: `installer\SetupAppBridge_Client.exe`
+**Output**: `installer\SetupContextAgent_Client.exe`
 
 #### **Step 4: Manually Sign the Installer**
-- Use your signing tool to sign: `installer\SetupAppBridge_Client.exe`
+- Use your signing tool to sign: `installer\SetupContextAgent_Client.exe`
 
 ## File Locations
 
@@ -105,8 +105,8 @@ build-installer-only.bat
 ### **Built Installers**
 | Environment | Installer Path |
 |-------------|----------------|
-| Default | `installer\SetupAppBridge_Client.exe` |
-| Sage100 | `installer\SetupAppBridge_Sage100_Client.exe` |
+| Default | `installer\SetupContextAgent_Client.exe` |
+| Sage100 | `installer\SetupContextAgent_Sage100_Client.exe` |
 
 ## Script Options
 
