@@ -394,8 +394,11 @@ namespace CRMTogether.PwaHost
                 Directory.CreateDirectory(dataPath);
 
                 LogDebug("Creating WebView2 environment...");
-                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dataPath);
-                LogDebug("WebView2 environment created successfully");
+                // SSL bypass options for localhost HTTPS
+                string sslBypassOptions = "--disable-web-security --allow-insecure-localhost --allow-running-insecure-content --ignore-certificate-errors --ignore-ssl-errors --ignore-certificate-errors-spki-list --disable-certificate-verification --ignore-urlfetcher-cert-requests --disable-features=msForceBrowserSignIn --enable-features=InsecurePrivateNetworkRequestsAllowed";
+                var options = new CoreWebView2EnvironmentOptions(sslBypassOptions);
+                var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dataPath, options: options);
+                LogDebug("WebView2 environment created successfully with SSL bypass options");
 
                 LogDebug("Initializing WebView2...");
                 await _webView.EnsureCoreWebView2Async(env);
@@ -424,6 +427,19 @@ namespace CRMTogether.PwaHost
                 _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
                 _webView.CoreWebView2.Settings.IsStatusBarEnabled = true;
                 _webView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+                
+                // Additional SSL bypass settings
+                try
+                {
+                    _webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+                    _webView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
+                    LogDebug("SSL bypass settings configured");
+                }
+                catch (Exception ex)
+                {
+                    LogDebug($"Warning: Could not set all SSL bypass settings: {ex.Message}");
+                }
+                
                 LogDebug("WebView2 settings configured successfully");
 
                 // Inject PWA host object into the web page
@@ -445,6 +461,33 @@ namespace CRMTogether.PwaHost
                     catch (Exception ex)
                     {
                         LogDebug($"Error in WebResourceRequested handler: {ex.Message}");
+                    }
+                };
+
+                // Add certificate error handling
+                _webView.CoreWebView2.ServerCertificateErrorDetected += (s, e) =>
+                {
+                    try
+                    {
+                        LogDebug($"Certificate error detected for: {e.RequestUri}");
+                        LogDebug($"Error code: {e.ErrorStatus}");
+                        
+                        // For localhost, always continue despite certificate errors
+                        if (e.RequestUri.Contains("localhost") || e.RequestUri.Contains("127.0.0.1"))
+                        {
+                            LogDebug("Continuing with localhost despite certificate error");
+                            e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
+                        }
+                        else
+                        {
+                            LogDebug("Certificate error for non-localhost, using default behavior");
+                            e.Action = CoreWebView2ServerCertificateErrorAction.Default;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogDebug($"Error handling certificate error: {ex.Message}");
+                        e.Action = CoreWebView2ServerCertificateErrorAction.Default;
                     }
                 };
 
