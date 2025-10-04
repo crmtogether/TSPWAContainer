@@ -428,7 +428,7 @@ namespace CRMTogether.PwaHost
 
                 // Inject PWA host object into the web page
                 LogDebug("Injecting PWA host object...");
-                await InjectPwaHostObject();
+                InjectPwaHostObject();
                 LogDebug("PWA host object injected successfully");
 
                 LogDebug("Setting up WebView2 event handlers...");
@@ -456,7 +456,7 @@ namespace CRMTogether.PwaHost
                         LogDebug($"Navigation completed. Success: {e.IsSuccess}");
                         if (e.IsSuccess)
                         {
-                            await InjectPwaHostObject();
+                            InjectPwaHostObject();
                             // Save the current URL as the last visited URL
                             SaveCurrentUrl();
                         }
@@ -1329,7 +1329,7 @@ namespace CRMTogether.PwaHost
             }
         }
 
-        private async Task InjectPwaHostObject()
+        private void InjectPwaHostObject()
         {
             if (_webView?.CoreWebView2 == null) 
             {
@@ -1343,6 +1343,7 @@ namespace CRMTogether.PwaHost
                 // Use AddHostObjectToScript to inject the C# object directly
                 _webView.CoreWebView2.AddHostObjectToScript("pwa", new PwaHostObject(this));
                 
+                /*
                 // Add a more robust script to make the object available as window.pwa
                 await _webView.CoreWebView2.ExecuteScriptAsync(@"
                     try {
@@ -1390,7 +1391,7 @@ namespace CRMTogether.PwaHost
                         console.error('Error details:', error.message, error.stack);
                     }
                 ");
-                LogDebug("PWA host object injected successfully");
+                LogDebug("PWA host object injected successfully");*/
             }
             catch (Exception ex)
             {

@@ -1,6 +1,8 @@
 {
   "Environment": "Default",
-  "StartupUrl": "https://crmtogether.com/contextagent-app-home/",
+  "xxStartupUrl": "https://crmtogether.com/contextagent-app-home/",
+  "StartupUrl": "https://localhost:5173/",
+
   "AppName": "ContextAgent",
   "AppDescription": "WinForms WebView2 host with clipboard monitoring, custom URI handling, and multi-language support",
   "ProtocolHandler": "crmtog",

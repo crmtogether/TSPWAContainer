@@ -16,7 +16,7 @@ namespace CRMTogether.PwaHost
         {
             LogInfo("AsyncInitializeWebView start", true);
 
-            string wv_options = "--disable-web-security --allow-insecure-localhost --allow-running-insecure-content --disable-features=msForceBrowserSignIn --enable-features=InsecurePrivateNetworkRequestsAllowed";
+            string wv_options = "--disable-web-security --allow-insecure-localhost --allow-running-insecure-content --disable-features=msForceBrowserSignIn --enable-features=InsecurePrivateNetworkRequestsAllowed --ignore-certificate-errors --ignore-ssl-errors --ignore-certificate-errors-spki-list --disable-certificate-verification --allow-running-insecure-content --disable-web-security --user-data-dir --disable-features=VizDisplayCompositor";
             
             var options = new CoreWebView2EnvironmentOptions(wv_options);
             var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
