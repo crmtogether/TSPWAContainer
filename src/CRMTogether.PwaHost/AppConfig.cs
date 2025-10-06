@@ -25,7 +25,7 @@ namespace CRMTogether.PwaHost
         
         // Feature toggles
         public bool ShowTestMenu { get; set; } = true;
-        public bool ShowClipboardMenu { get; set; } = true;
+        public bool ShowClipboardMenu { get; set; } = false;
         public bool EnableFolderMonitoring { get; set; } = true;
 
         public static string ConfigDir => Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "CRMTogether", "PwaHost");
@@ -253,7 +253,7 @@ namespace CRMTogether.PwaHost
         
         // Feature toggles
         public bool ShowTestMenu { get; set; } = true;
-        public bool ShowClipboardMenu { get; set; } = true;
+        public bool ShowClipboardMenu { get; set; } = false;
         public bool EnableFolderMonitoring { get; set; } = true;
     }
 

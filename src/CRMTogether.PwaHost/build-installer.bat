@@ -84,6 +84,17 @@ if %ERRORLEVEL% neq 0 (
 echo.
 echo Project built successfully!
 echo.
+echo.
+echo Signing exe!
+echo.
+"C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe" sign ^
+  /n "Together Software Limited" ^
+  /tr http://timestamp.comodoca.com ^
+  /td sha256 /fd sha256 ^
+  "C:\Marc\github\TSPWAContainer\src\CRMTogether.PwaHost\bin\Release\net48\CRMTogether.PwaHost.exe"
+echo.
+echo Signed exe successfully!
+echo.
 
 REM Create installer directory
 if not exist "installer" mkdir installer
@@ -110,6 +121,18 @@ echo.
 echo Installer built successfully!
 echo.
 echo Installer location: installer\%INSTALLER_NAME%
+echo.
+
+echo.
+echo Signing installer!
+echo.
+"C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe" sign ^
+  /n "Together Software Limited" ^
+  /tr http://timestamp.comodoca.com ^
+  /td sha256 /fd sha256 ^
+  installer\%INSTALLER_NAME%
+echo.
+echo Signed installer successfully!
 echo.
 
 REM Open the installer directory

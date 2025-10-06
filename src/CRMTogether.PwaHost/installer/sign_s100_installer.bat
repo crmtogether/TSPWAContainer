@@ -2,4 +2,4 @@
   /n "Together Software Limited" ^
   /tr http://timestamp.comodoca.com ^
   /td sha256 /fd sha256 ^
-  "C:\Marc\github\TSPWAContainer\src\CRMTogether.PwaHost\installer\SetupAppBridge_Sage100_Client.exe"
+  "C:\Marc\github\TSPWAContainer\src\CRMTogether.PwaHost\installer\SetupContextAgent_Sage100_Client.exe"	

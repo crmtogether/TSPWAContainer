@@ -10,5 +10,7 @@
     "Version": "2.0.0",
     "BuildTag": "Default",
     "TargetUrl": "https://crmtogether.com/contextagent-app-home/"
-  }
+  },
+  "ShowClipboardMenu": false,
+  "EnableFolderMonitoring": true
 }

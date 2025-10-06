@@ -854,8 +854,10 @@ namespace CRMTogether.PwaHost
         {
             try
             {
+               // MessageBox.Show("ss");
                 if (_lastEmailObject == null)
                 {
+                 //   MessageBox.Show("null");
                     LogDebug("No email data available - no email object has been set yet");
                     return string.Empty;
                 }
@@ -1278,7 +1280,7 @@ namespace CRMTogether.PwaHost
 
                 // Store the email object for later retrieval
                 _lastEmailObject = emailObject;
-
+                
                 // Serialize to JSON
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(emailObject);
 
